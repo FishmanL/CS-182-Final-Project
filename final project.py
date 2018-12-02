@@ -1,6 +1,17 @@
 from dominiate import cards, dominion, game, players, combobot, derivbot
 from keras import models, layers, regularizers, preprocessing
 
+canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copper, game.silver, game.gold,
+                   cards.village, cards.cellar, cards.smithy, cards.festival, cards.market, cards.laboratory,
+                   cards.chapel, cards.warehouse, cards.council_room, cards.militia, cards.moat]
+
+
+def c2f (cards):
+    currarr = [0 for _ in len(canonical_order)]
+    for c in cards:
+        currarr[canonical_order.index(c)] += 1
+    return currarr
+
 class combo_learner(combobot.ComboBot):
     def __init__(self):
         self.buy_weights = []
@@ -18,7 +29,9 @@ class combo_learner(combobot.ComboBot):
         game = decision.game
         pass
     def from_state_features_play (self, decision):
-        game = decision.game
+        state = decision.game.state
+        hand = state.hand
+        return c2f(hand)
         pass
     def from_state_features_discard (self, decision):
         game = decision.game
@@ -26,7 +39,7 @@ class combo_learner(combobot.ComboBot):
     def terminal_val (self, decision):
         if game.Game.over(decision.game):
             player = decision.player()
-            return game.PlayerState.score(player)
-        return 0
+            return game.PlayerState.score(player) * 4
+        return game.PlayerState.score(player)
 
     pass
