@@ -56,8 +56,9 @@ class combo_learner(combobot.ComboBot):
     def from_state_features_discard (self, decision):
         game = decision.game
         state = decision.game.state()
-        hand = state.hand
-        return c2f(hand).extend([state.actions, state.buys, state.hand_value()])
+        a = c2f(state.hand)
+        a.extend([state.actions, state.buys, state.hand_value()])
+        return a
         pass
     def terminal_val (self, decision):
         player = decision.player()
