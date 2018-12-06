@@ -35,12 +35,6 @@ class ComboLearner(combobot.ComboBot):
             self.loadweights(filename=loadfile)
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
 
-        # from Pacman ApproximateQLearning init
-        # def __init__(self, extractor='IdentityExtractor', **args):
-        # self.featExtractor = util.lookup(extractor, globals())()
-        # PacmanQAgent.__init__(self, **args)
-        # self.weights = util.Counter()
-
     """
     4 separate q learners
     """
@@ -54,9 +48,15 @@ class ComboLearner(combobot.ComboBot):
             self.discard_weights = introws[2]
             self.play_weights = introws[3]
     
-    # saves weights to a csv file
+            # saves weights to a csv file
+            a = len(introws)
+            self.buy_weights = introws[a-4]
+            self.trash_weights = introws[a-3]
+            self.discard_weights = introws[a-2]
+            self.play_weights = introws[a-1]
+    
     def saveweights(self, filename = "weights.csv"):
-        with open(filename, "w+") as file:
+        with open(filename, "a+") as file:
             writer = csv.writer(file)
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
             for weight in self.weights:
