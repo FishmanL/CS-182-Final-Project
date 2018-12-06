@@ -28,6 +28,7 @@ def test_game():
     player2.setLogLevel(logging.DEBUG)
     game = Game.setup([player1, player2, player3], variable_cards)
     results = game.run()
+    print(results)
     return results
 
 def human_game():
@@ -40,4 +41,4 @@ def human_game():
 
 if __name__ == '__main__':
     #print compare_bots([smithyComboBot, chapelComboBot, HillClimbBot(2, 3, 40)])
-    human_game()
+    test_game()
