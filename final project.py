@@ -81,10 +81,14 @@ class combo_learner(combobot.ComboBot):
         return a
         pass
     def terminal_val (self, decision):
-        player = decision.player()
+        state = decision.game.state()
+        playerscores = [state.score() for state in decision.game.playerstates]
+        score = state.score()
         if game.Game.over(decision.game):
-
-            return game.PlayerState.score(player) * 4
-        return game.PlayerState.score(player)
+            if score >= max(playerscores):
+                return 100*(len(playerscores)) + score #reward for winning larger games
+            else:
+                return -max(playerscores) + score #you lost, but you should still get some reward for being close
+        return score /(g2f(decision.game.counts)[3]) #score over remaining provinces
 
     pass
