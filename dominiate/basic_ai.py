@@ -81,6 +81,8 @@ class RandomBot(AIPlayer):
         chosen = []
         choices = decision.choices()
         while choices and latest is not None and len(chosen) < decision.max:
+            if len(chosen) > decision.min and len(decision.state().drawpile) - len(chosen) < 5:
+                return chosen
             latest = random.choice(choices)
             if latest is not None:
                 choices.remove(latest)
