@@ -81,6 +81,8 @@ class RandomBot(AIPlayer):
         chosen = []
         choices = decision.choices()
         while choices and latest is not None and len(chosen) < decision.max:
+            if len(chosen) > decision.min and len(decision.state().drawpile) - len(chosen) < 5:
+                return chosen
             latest = random.choice(choices)
             if latest is not None:
                 choices.remove(latest)
@@ -116,11 +118,11 @@ class GreedyBot(AIPlayer):
         return sorted(choices, key=lambda choice: choice.cost)
 
     def make_buy_decision(self, decision):
-        if len(decision.choices() == 1):
+        if len(decision.choices()) == 1:
             return decision.choices()[0]
         return self.order_cards(decision.choices())[-1]
     def make_act_decision(self, decision):
-        if len(decision.choices() == 1):
+        if len(decision.choices()) == 1:
             return decision.choices()[0]
         return self.order_cards(decision.choices())[-1]
     def make_trash_decision(self, decision):
