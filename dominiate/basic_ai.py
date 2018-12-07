@@ -63,7 +63,43 @@ class HillClimbBot(BigMoney):
             return c.estate
         return BigMoney.make_buy_decision(self, decision)
 
+class RandomBot(AIPlayer):
+    """
+    This AI randomly selects an option from among those available
+    """
+    def __init__(self):
+        if not hasattr(self, 'name'):
+            self.name = 'RandomBot'
+        AIPlayer.__init__(self)
 
+    def make_buy_decision(self, decision):
+        return random.choice(decision.choices())
+    def make_act_decision(self, decision):
+        return random.choice(decision.choices())
+    def make_trash_decision(self, decision):
+        latest = False
+        chosen = []
+        choices = decision.choices()
+        while choices and latest is not None and len(chosen) < decision.max:
+            # enable option to not do anything
+            if len(chosen) >= decision.min:
+                choices.append(None)
+            latest = random.choice(decision.choices())
+            chosen.append(latest)
+            choices.remove(latest)
+        return chosen
+    def make_discard_decision(self, decision):
+        latest = False
+        chosen = []
+        choices = decision.choices()
+        while choices and latest is not None and len(chosen) < decision.max:
+            # enable option to not do anything
+            if len(chosen) >= decision.min:
+                choices.append(None)
+            latest = random.choice(decision.choices())
+            chosen.append(latest)
+            choices.remove(latest)
+        return chosen
 
 def buying_value(coins, buys):
     if coins > buys*8: coins = buys*8
