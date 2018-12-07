@@ -1,6 +1,7 @@
 from game import Game, BuyDecision, ActDecision, TrashDecision, DiscardDecision, MultiDecision, INF
 import cards as c
 import logging
+import random
 
 class Player(object):
     def __init__(self, *args):
@@ -98,6 +99,21 @@ class AIPlayer(Player):
         else:
             raise NotImplementedError
         return decision.choose(choice)
+
+class RandomAI(AIPlayer):
+    """
+    This AI randomly selects an option from among those available
+    """
+    def make_buy_decision(decision):
+        return random.choice(decision.choices())
+    def make_act_decision(decision):
+        return random.choice(decision.choices())
+    def make_discard_decision(decision):
+        return random.choice(decision.choices())
+    def make_trash_decision(decision):
+        return random.choice(decision.choices())
+
+
 
 class BigMoney(AIPlayer):
     """
