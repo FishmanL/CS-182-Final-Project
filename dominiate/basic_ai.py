@@ -81,7 +81,7 @@ class RandomBot(AIPlayer):
         chosen = []
         choices = decision.choices()
         while choices and latest is not None and len(chosen) < decision.max:
-            latest = random.choice(decision.choices())
+            latest = random.choice(choices)
             if latest is not None:
                 choices.remove(latest)
                 chosen.append(latest)
@@ -91,7 +91,7 @@ class RandomBot(AIPlayer):
         chosen = []
         choices = decision.choices()
         while choices and latest is not None and len(chosen) < decision.max:
-            latest = random.choice(decision.choices())
+            latest = random.choice(choices)
             if latest is not None:
                 choices.remove(latest)
                 chosen.append(latest)
