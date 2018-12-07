@@ -81,25 +81,51 @@ class RandomBot(AIPlayer):
         chosen = []
         choices = decision.choices()
         while choices and latest is not None and len(chosen) < decision.max:
-            # enable option to not do anything
-            if len(chosen) >= decision.min:
-                choices.append(None)
-            latest = random.choice(decision.choices())
-            chosen.append(latest)
-            choices.remove(latest)
+            latest = random.choice(choices)
+            if latest is not None:
+                choices.remove(latest)
+                chosen.append(latest)
         return chosen
     def make_discard_decision(self, decision):
         latest = False
         chosen = []
         choices = decision.choices()
         while choices and latest is not None and len(chosen) < decision.max:
-            # enable option to not do anything
-            if len(chosen) >= decision.min:
-                choices.append(None)
-            latest = random.choice(decision.choices())
-            chosen.append(latest)
-            choices.remove(latest)
+            latest = random.choice(choices)
+            if latest is not None:
+                choices.remove(latest)
+                chosen.append(latest)
         return chosen
+
+class GreedyBot(AIPlayer):
+    """
+    This AI chooses the card with highest value to buy and lowest cost to discard/trash
+    """
+    def __init__(self):
+        if not hasattr(self, 'name'):
+            self.name = 'GreedyBot'
+        AIPlayer.__init__(self)
+
+    def order_cards(self, choices):
+        """
+        Provide a buy_priority by ordering the cards from least to most
+        important.
+        """
+        return sorted(choices, key=lambda choice: choice.price)
+
+    def make_buy_decision(self, decision):
+        print decision.choices()
+        return self.order_cards(decision.choices())[0]
+    def make_act_decision(self, decision):
+        return self.order_cards(decision.choices())[0]
+    def make_trash_decision(self, decision):
+        chosen = []
+        choices = self.order_cards(decision.choices())
+        return choices[0:decision.min]
+    def make_discard_decision(self, decision):
+        chosen = []
+        choices = self.order_cards(decision.choices())
+        return choices[0:decision.min]
 
 def buying_value(coins, buys):
     if coins > buys*8: coins = buys*8

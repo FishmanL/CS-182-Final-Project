@@ -32,7 +32,7 @@ def test_game():
     return results
 
 def human_game():
-    player1 = smithyComboBot
+    player1 = GreedyBot()
     player2 = RandomBot()
     player3 = HillClimbBot(2, 3, 40)
     player4 = HumanPlayer('You')
