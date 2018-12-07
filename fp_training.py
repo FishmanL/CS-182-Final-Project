@@ -2,15 +2,18 @@ from dominiate import cards, dominion, game, players, combobot, derivbot, basic_
 import csv
 from final_project import *
 
-# Options for Players: players.BigMoney()
+# Options for AI Players:
 # ComboLearner()            our q learner
-# RandomBot()               an agent that acts randomly
-# 
-# smithyComboBot()          from source code, basic ai
-# chapelComboBot()          from source code, basic ai
-# HillClimbBot(2, 3, 40)    from source code, basic ai
+# RandomBot()               an agent that randomly selects an available option
+# GreedyBot()               an agent that chooses the card with highest value to buy
+#                               and lowest cost to discard/trash
+# BigMoney()                built-in, basic ai. An agent that aims to buy money
+#                               and then buy victory
+# SmithyBot()               built-in, basic ai
+# HillClimbBot              built-in, basic ai
 # ... any more that we create
 
+# testing loop for non-Q learning agents
 def testNotQAgents(player1, player2, iterations):
     wins = [] # binary array tracking wins of each game
     for i in range(iterations):
@@ -34,7 +37,7 @@ def testNotQAgents(player1, player2, iterations):
     return float(sum(wins)) / float(iterations)
     
 
-def testing(player1, player2, iterations):
+def testQAgents(player1, player2, iterations):
     game_results = []
 
     # play specified number of games
@@ -49,8 +52,9 @@ def testing(player1, player2, iterations):
     return game_results
 
 if __name__ == '__main__':
-    #testing(ComboLearner(), ComboLearner(), 10)
-    #testing(ComboLearner(), smithyComboBot(), 10)
-    #testing(ComboLearner(), HillClimbBot(), 10)
+    # testQAgents(ComboLearner(), ComboLearner(), 10)
+    # testQAgents(ComboLearner(), smithyComboBot(), 10)
+    # testQAgents(ComboLearner(), HillClimbBot(), 10)
     # testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 10)
-    testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyBot(), 1000)
+    # testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
+    testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 2)
