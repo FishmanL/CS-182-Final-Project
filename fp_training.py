@@ -16,6 +16,8 @@ from final_project import *
 # testing loop for non-Q learning agents
 def testNotQAgents(player1, player2, iterations):
     wins = [] # binary array tracking wins of each game
+
+    # play specified number of games
     for i in range(iterations):
         board = game.Game.setup([player1, player2], cards.variable_cards)
         results = board.run()    # returns a dictionary mapping players to scores
@@ -33,10 +35,10 @@ def testNotQAgents(player1, player2, iterations):
             wins.append(0)
     
     # return winning percentage
-    print(float(sum(wins)) / float(iterations))
-    return float(sum(wins)) / float(iterations)
+    win_rate = float(sum(wins)) / float(iterations)
+    print(win_rate)
     
-
+# testing loop for Q-learning agents
 def testQAgents(player1, player2, iterations):
     game_results = []
 
@@ -49,12 +51,9 @@ def testQAgents(player1, player2, iterations):
         game_results.append(results)
 
     print(game_results)
-    return game_results
 
 if __name__ == '__main__':
-    # testQAgents(ComboLearner(), ComboLearner(), 10)
-    # testQAgents(ComboLearner(), smithyComboBot(), 10)
-    # testQAgents(ComboLearner(), HillClimbBot(), 10)
-    # testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 10)
-    # testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
-    testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 2)
+    testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 1000)
+    testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
+    testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 1000)
+    testNotQAgents(basic_ai.RandomBot(), players.BigMoney(), 1000)

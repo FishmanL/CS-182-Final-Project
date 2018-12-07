@@ -99,6 +99,15 @@ class RandomBot(AIPlayer):
                 chosen.append(latest)
         return chosen
 
+class RandomToTest(RandomBot):
+    """
+    This AI randomly selects an option from among those available
+    """
+    def __init__(self):
+        if not hasattr(self, 'name'):
+            self.name = 'RandomToTest'
+        AIPlayer.__init__(self)
+
 class GreedyBot(AIPlayer):
     """
     This AI chooses the card with highest value to buy and lowest cost to discard/trash
@@ -142,67 +151,7 @@ class GreedyToTest(AIPlayer):
         if not hasattr(self, 'name'):
             self.name = 'GreedyToTest'
         AIPlayer.__init__(self)
-
-    def order_cards(self, choices):
-        """
-        Provide a buy_priority by ordering the cards from least to most
-        important.
-        """
-        if None in choices:
-            choices.remove(None)
-        return sorted(choices, key=lambda choice: choice.cost)
-
-    def make_buy_decision(self, decision):
-        if len(decision.choices()) == 1:
-            return decision.choices()[0]
-        return self.order_cards(decision.choices())[-1]
-    def make_act_decision(self, decision):
-        if len(decision.choices()) == 1:
-            return decision.choices()[0]
-        return self.order_cards(decision.choices())[-1]
-    def make_trash_decision(self, decision):
-        chosen = []
-        choices = self.order_cards(decision.choices())
-        return choices[0:decision.min]
-    def make_discard_decision(self, decision):
-        chosen = []
-        choices = self.order_cards(decision.choices())
-        return choices[0:decision.min]
-
-class RandomToTest(AIPlayer):
-    """
-    This AI randomly selects an option from among those available
-    """
-    def __init__(self):
-        if not hasattr(self, 'name'):
-            self.name = 'RandomToTest'
-        AIPlayer.__init__(self)
-
-    def make_buy_decision(self, decision):
-        return random.choice(decision.choices())
-    def make_act_decision(self, decision):
-        return random.choice(decision.choices())
-    def make_trash_decision(self, decision):
-        latest = False
-        chosen = []
-        choices = decision.choices()
-        while choices and latest is not None and len(chosen) < decision.max:
-            latest = random.choice(choices)
-            if latest is not None:
-                choices.remove(latest)
-                chosen.append(latest)
-        return chosen
-    def make_discard_decision(self, decision):
-        latest = False
-        chosen = []
-        choices = decision.choices()
-        while choices and latest is not None and len(chosen) < decision.max:
-            latest = random.choice(choices)
-            if latest is not None:
-                choices.remove(latest)
-                chosen.append(latest)
-        return chosen
-
+   
 def buying_value(coins, buys):
     if coins > buys*8: coins = buys*8
     if (coins - (buys-1)*8) in (1, 7):  # there exists a useless coin
