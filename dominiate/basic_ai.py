@@ -116,9 +116,12 @@ class GreedyBot(AIPlayer):
         return sorted(choices, key=lambda choice: choice.cost)
 
     def make_buy_decision(self, decision):
-        print decision.choices()
+        if len(decision.choices() == 1):
+            return decision.choices()[0]
         return self.order_cards(decision.choices())[-1]
     def make_act_decision(self, decision):
+        if len(decision.choices() == 1):
+            return decision.choices()[0]
         return self.order_cards(decision.choices())[-1]
     def make_trash_decision(self, decision):
         chosen = []
