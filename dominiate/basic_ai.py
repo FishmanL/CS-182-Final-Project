@@ -111,13 +111,15 @@ class GreedyBot(AIPlayer):
         Provide a buy_priority by ordering the cards from least to most
         important.
         """
-        return sorted(choices, key=lambda choice: choice.price)
+        if None in choices:
+            choices.remove(None)
+        return sorted(choices, key=lambda choice: choice.cost)
 
     def make_buy_decision(self, decision):
         print decision.choices()
-        return self.order_cards(decision.choices())[0]
+        return self.order_cards(decision.choices())[-1]
     def make_act_decision(self, decision):
-        return self.order_cards(decision.choices())[0]
+        return self.order_cards(decision.choices())[-1]
     def make_trash_decision(self, decision):
         chosen = []
         choices = self.order_cards(decision.choices())
