@@ -1,6 +1,7 @@
 from game import TrashDecision, DiscardDecision
 from players import AIPlayer, BigMoney
 import cards as c
+import random
 import logging, sys
 
 class SmithyBot(BigMoney):
@@ -61,6 +62,8 @@ class HillClimbBot(BigMoney):
         if c.estate in choices and provinces_left <= self.cutoff1:
             return c.estate
         return BigMoney.make_buy_decision(self, decision)
+
+
 
 def buying_value(coins, buys):
     if coins > buys*8: coins = buys*8

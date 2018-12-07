@@ -33,7 +33,7 @@ def test_game():
 
 def human_game():
     player1 = smithyComboBot
-    player2 = chapelComboBot
+    player2 = RandomBot()
     player3 = HillClimbBot(2, 3, 40)
     player4 = HumanPlayer('You')
     game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
@@ -41,4 +41,4 @@ def human_game():
 
 if __name__ == '__main__':
     #print compare_bots([smithyComboBot, chapelComboBot, HillClimbBot(2, 3, 40)])
-    test_game()
+    human_game()
