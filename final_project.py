@@ -55,6 +55,7 @@ class ComboLearner(combobot.ComboBot):
             self.discard_weights = introws[a-2]
             self.play_weights = introws[a-1]
     
+    # saves weights to a csv file
     def saveweights(self, filename = "weights.csv"):
         with open(filename, "a+") as file:
             writer = csv.writer(file)
@@ -113,6 +114,4 @@ class ComboLearner(combobot.ComboBot):
                 return -max(playerscores) + score # you lost, but you should still get some reward for being close
         return score /(g2f(decision.game.counts)[3]) # score over remaining provinces
 
-    pass
-
-    # q learner # TODO @ Johnny
+        pass
