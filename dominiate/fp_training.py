@@ -76,4 +76,4 @@ if __name__ == '__main__':
     #testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 1000)
     #testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
     #testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 1000)
-    testQAgents(ComboLearner(), players.BigMoney(), 10)
+    testQAgents(ComboLearner(), GreedyBot(), 10)

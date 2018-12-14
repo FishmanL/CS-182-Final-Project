@@ -123,20 +123,18 @@ class ComboLearner(players.BigMoney):
             count = self.buy_dict[key][0]
             max_q = self.buy_dict[key][1]
 
-            difference = reward + self.gamma * max_q - cur_q_value
-            new_weights = [cur_weights[i] + 1.0*difference*features[i] for i in range(len(cur_weights))]
+            difference = reward - cur_q_value
+            new_weights = [cur_weights[i] + 0.5*difference*features[i] for i in range(len(cur_weights))]
             new_weights_list.append(new_weights)
 
         for idx in range(len(self.buy_weights)):
-            print "I am here"
             self.buy_weights[idx] = 0
             for l in new_weights_list:
-                print l[idx]
                 self.buy_weights[idx] += l[idx]
-            print "final"
             self.buy_weights[idx] /= len(new_weights_list)
-            print self.buy_weights[idx]
-            print "done"
+
+        #s = sum(self.buy_weights)
+        #self.buy_weights = [i/s for i in self.buy_weights]
 
 
     # scores at the end of a game
