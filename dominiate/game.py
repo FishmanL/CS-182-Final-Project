@@ -559,6 +559,7 @@ class Game(object):
         the game state where it is the next player's turn.
         """
         self.log.info("")
+        print(self.current_player())
         self.log.info("Round %d / player %d: %s" % (
           (self.round + 1),
           (self.player_turn+1), self.current_player().name

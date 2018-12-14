@@ -128,10 +128,15 @@ class ComboLearner(players.BigMoney):
             new_weights_list.append(new_weights)
 
         for idx in range(len(self.buy_weights)):
+            print "I am here"
             self.buy_weights[idx] = 0
             for l in new_weights_list:
+                print l[idx]
                 self.buy_weights[idx] += l[idx]
+            print "final"
             self.buy_weights[idx] /= len(new_weights_list)
+            print self.buy_weights[idx]
+            print "done"
 
 
     # scores at the end of a game

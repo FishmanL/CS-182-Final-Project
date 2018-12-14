@@ -1,6 +1,7 @@
 from game import Game, BuyDecision, ActDecision, TrashDecision, DiscardDecision, MultiDecision, INF
 import cards as c
 import logging
+import random
 
 class Player(object):
     def __init__(self, *args):
@@ -82,6 +83,7 @@ class HumanPlayer(Player):
 
 class AIPlayer(Player):
     def __init__(self):
+        # type: () -> object
         self.log = logging.getLogger(self.name)
     def setLogLevel(self, level):
         self.log.setLevel(level)
@@ -247,4 +249,3 @@ class BigMoney(AIPlayer):
                 choices.remove(latest)
                 chosen.append(latest)
         return chosen
-

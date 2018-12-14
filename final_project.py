@@ -1,5 +1,5 @@
 from dominiate import cards, dominion, game, players, combobot, derivbot
-from keras import models, layers, regularizers, preprocessing
+# from keras import models, layers, regularizers, preprocessing
 import csv
 
 # each index corresponds to the amount of one specific card
