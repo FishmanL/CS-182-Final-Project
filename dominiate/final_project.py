@@ -124,7 +124,7 @@ class ComboLearner(players.BigMoney):
             max_q = self.buy_dict[key][1]
 
             difference = reward - cur_q_value
-            new_weights = [cur_weights[i] + 0.5*difference*features[i] for i in range(len(cur_weights))]
+            new_weights = [cur_weights[i] + 0.001*difference*features[i] for i in range(len(cur_weights))]
             new_weights_list.append(new_weights)
 
         for idx in range(len(self.buy_weights)):
@@ -176,7 +176,7 @@ class ComboLearner(players.BigMoney):
         choices = [card for card, count in game.card_counts.items() if count > 0]
         actions = [card for card in choices if card.cost <= decision.coins()]
 
-        cur_q_value = sum(features[i]*weights[i] for i in range(len(features)))
+        cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         # Find the best action to take
         best_q_value = cur_q_value
@@ -191,7 +191,7 @@ class ComboLearner(players.BigMoney):
             new_features = g2f(new_counts)
             new_features.extend(c2f(new_deck))
 
-            new_q_value = sum(new_features[i]*weights[i] for i in range(len(features)))
+            new_q_value = sum([new_features[i]*weights[i] for i in range(len(features))])
             if new_q_value >= best_q_value:
                 best_q_value = new_q_value
                 best_card = card
@@ -219,7 +219,7 @@ class ComboLearner(players.BigMoney):
         choose one card to trash until None is chosen.
         TrashDecision is a MultiDecision, so return a list.
         """
-        return None
+        return [None]
 
     def make_discard_decision(self, decision):
-        return None
+        return [None]
