@@ -599,9 +599,10 @@ class Game(object):
         while not game.over():
             game = game.take_turn()
         scores = [(state.player, state.score()) for state in game.playerstates]
+
         self.log.info("End of game.")
         self.log.info("Scores: %s" % scores)
-        return scores
+        return game, scores
 
     def __repr__(self):
         return 'Game%s[%s]' % (str(self.playerstates), str(self.turn))

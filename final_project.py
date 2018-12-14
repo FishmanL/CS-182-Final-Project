@@ -108,6 +108,7 @@ class ComboLearner(players.BigMoney):
         pass
 
     def update_q_values(self, reward):
+        print "updating !!!!!!"
         cur_weights = self.buy_weights
         new_weights_list = list()
 
@@ -130,11 +131,11 @@ class ComboLearner(players.BigMoney):
 
 
     # scores at the end of a game
-    def terminal_val (self, decision):
-        state = decision.game.state()
-        playerscores = [state.score() for state in decision.game.playerstates]
+    def terminal_val (self, game):
+        state = game.state()
+        playerscores = [state.score() for state in game.playerstates]
         score = state.score()
-        if game.Game.over(decision.game):
+        if game.Game.over(game):
             if score >= max(playerscores):
                 final_score = 100*(len(playerscores)) + score # reward for winning larger games
             else:
@@ -142,7 +143,7 @@ class ComboLearner(players.BigMoney):
             self.update_q_values(final_score)
             return final_score
 
-        return score /(g2f(decision.game.counts)[3]) # score over remaining provinces
+        return score /(g2f(game.card_counts)[3]) # score over remaining provinces
 
         pass
 
@@ -165,15 +166,16 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be bought 
-        actions = decision.choices()
+        choices = [card for card, count in game.card_counts.items() if count > 0]
+        actions = [card for card in choices if card.cost <= decision.coins()]
 
         cur_q_value = sum(features[i]*weights[i] for i in range(len(features)))
 
         # Find the best action to take
         best_q_value = cur_q_value
         best_card = None
-        for card in actions[1:]: #Already processed None
-            new_counts = game.card_counts
+        for card in actions: #Already processed None
+            new_counts = game.card_counts.copy()
             new_counts[card] -= 1
 
             state = decision.state()
@@ -183,7 +185,7 @@ class ComboLearner(players.BigMoney):
             new_features.extend(c2f(new_deck))
 
             new_q_value = sum(new_features[i]*weights[i] for i in range(len(features)))
-            if new_q_value > best_q_value:
+            if new_q_value >= best_q_value:
                 best_q_value = new_q_value
                 best_card = card
 
@@ -192,7 +194,7 @@ class ComboLearner(players.BigMoney):
             self.buy_dict[(tuple(features), best_card, cur_q_value)][0] += 1
         else:
             self.buy_dict[(tuple(features), best_card, cur_q_value)] = [(1, best_q_value)]
-        
+        #print best_card, actions
         return best_card
 
     
