@@ -23,7 +23,7 @@ def g2f (carddict):
     return currarr
 
 
-class ComboLearner(combobot.ComboBot):
+class ComboLearner(players.BigMoney):
     def __init__(self, loadfile = None):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2))]
@@ -34,6 +34,11 @@ class ComboLearner(combobot.ComboBot):
         else:
             self.loadweights(filename=loadfile)
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
+
+        self.buy_dict = dict()
+        self.gamma = 0.5
+        self.name = "Q-learner"
+        players.BigMoney.__init__(self)
 
     """
     4 separate q learners
@@ -67,7 +72,7 @@ class ComboLearner(combobot.ComboBot):
     def from_state_features_buy (self, decision):
         game = decision.game
         deck = decision.state().all_cards()
-        a = g2f(game.counts)
+        a = g2f(game.card_counts)
         a.extend(c2f(deck))
         return a
         pass
@@ -77,7 +82,7 @@ class ComboLearner(combobot.ComboBot):
         game = decision.game
         state = decision.state()
         deck = decision.state().all_cards()
-        a = g2f(game.counts)
+        a = g2f(game.card_counts)
         a.extend(c2f(deck))
         a.extend(c2f(state.hand))
         return a
@@ -102,6 +107,28 @@ class ComboLearner(combobot.ComboBot):
         return a
         pass
 
+    def update_q_values(self, reward):
+        cur_weights = self.buy_weights
+        new_weights_list = list()
+
+        for key, value in self.buy_dict:
+            features = list(key[0])
+            action = key[1]
+            cur_q_value = key[2]
+            count = value[0]
+            max_q = value[1]
+
+            difference = reward + self.gamma * max_q - cur_q_value
+            new_weights = [cur_weights[i] + 1.0*difference*features[i] for i in range(len(cur_weights))]
+            new_weights.append(new_weights)
+
+        for idx in range(len(self.buy_weights)):
+            self.buy_weights[idx] = 0
+            for l in new_weights:
+                self.buy_weights[idx] += l[idx]
+            self.buy_weights[idx] /= len(new_weights)
+
+
     # scores at the end of a game
     def terminal_val (self, decision):
         state = decision.game.state()
@@ -109,9 +136,81 @@ class ComboLearner(combobot.ComboBot):
         score = state.score()
         if game.Game.over(decision.game):
             if score >= max(playerscores):
-                return 100*(len(playerscores)) + score # reward for winning larger games
+                final_score = 100*(len(playerscores)) + score # reward for winning larger games
             else:
-                return -max(playerscores) + score # you lost, but you should still get some reward for being close
+                final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
+            self.update_q_values(final_score)
+            return final_score
+
         return score /(g2f(decision.game.counts)[3]) # score over remaining provinces
 
         pass
+
+
+    def getAction(self, actions):
+        '''if math.random() > 0.05:
+            return random.choice(legalActions)
+
+        return self.computeActionFromQValues(state)'''
+        pass
+
+
+    def make_buy_decision(self, decision):
+        """
+        Choose a card to buy
+        """
+
+        features = self.from_state_features_buy(decision)
+        weights = self.buy_weights
+        game = decision.game
+
+        # All remaining cards that could be bought 
+        actions = decision.choices()
+
+        cur_q_value = sum(features[i]*weights[i] for i in range(len(features)))
+
+        # Find the best action to take
+        best_q_value = cur_q_value
+        best_card = None
+        for card in actions[1:]: #Already processed None
+            new_counts = game.card_counts
+            new_counts[card] -= 1
+
+            state = decision.state()
+            new_deck = state.hand + state.tableau + state.drawpile + (state.discard+(card,))
+
+            new_features = g2f(new_counts)
+            new_features.extend(c2f(new_deck))
+
+            new_q_value = sum(new_features[i]*weights[i] for i in range(len(features)))
+            if new_q_value > best_q_value:
+                best_q_value = new_q_value
+                best_card = card
+
+        # Add the action we take and corresponding Q-value to history to update later
+        if (tuple(features), best_card) in self.buy_dict:
+            self.buy_dict[(tuple(features), best_card, cur_q_value)][0] += 1
+        else:
+            self.buy_dict[(tuple(features), best_card, cur_q_value)] = [(1, best_q_value)]
+        
+        return best_card
+
+    
+    def make_act_decision(self, decision):
+        """
+        Choose an Action to play.
+        By default, this chooses the action with the highest positive
+        act_priority.
+        """
+        return None
+
+    def make_trash_decision(self, decision):
+        """
+        The default way to decide which cards to trash is to repeatedly
+        choose one card to trash until None is chosen.
+        TrashDecision is a MultiDecision, so return a list.
+        """
+        return None
+
+    def make_discard_decision(self, decision):
+        return None
