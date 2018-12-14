@@ -11,7 +11,7 @@ from combobot import *
 from cards import variable_cards
 from collections import defaultdict
 import random
-from keras import models, layers, regularizers, preprocessing
+# from keras import models, layers, regularizers, preprocessing
 
 import csv
 from final_project import *
@@ -76,4 +76,4 @@ if __name__ == '__main__':
     #testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 1000)
     #testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
     #testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 1000)
-    testQAgents(ComboLearner(), GreedyBot(), 10)
+    testQAgents(ComboLearner(), GreedyBot(), 50)
