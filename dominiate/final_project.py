@@ -124,7 +124,7 @@ class ComboLearner(players.BigMoney):
             max_q = self.buy_dict[key][1]
 
             difference = reward - cur_q_value
-            new_weights = [cur_weights[i] + 0.001*difference*features[i] for i in range(len(cur_weights))]
+            new_weights = [cur_weights[i] + 0.5*difference*features[i] for i in range(len(cur_weights))]
             new_weights_list.append(new_weights)
 
         for idx in range(len(self.buy_weights)):
@@ -133,8 +133,8 @@ class ComboLearner(players.BigMoney):
                 self.buy_weights[idx] += l[idx]
             self.buy_weights[idx] /= len(new_weights_list)
 
-        #s = sum(self.buy_weights)
-        #self.buy_weights = [i/s for i in self.buy_weights]
+        s = sum(self.buy_weights)
+        self.buy_weights = [i/s for i in self.buy_weights]
 
 
     # scores at the end of a game
