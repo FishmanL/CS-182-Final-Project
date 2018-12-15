@@ -6,6 +6,7 @@ import combobot
 import derivbot
 # from keras import models, layers, regularizers, preprocessing
 import csv
+from operator import itemgetter
 
 # each index corresponds to the amount of one specific card
 canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copper, game.silver, game.gold,
@@ -171,14 +172,12 @@ class ComboLearner(players.BigMoney):
     #     s = sum(self.buy_weights)
     #     self.buy_weights = [i/s for i in self.buy_weights]
 
-
     # update the q-vals for all four decision points
     def update_q_values(self, reward):
         self.buy_weights = self.update_one_qval(reward, self.buy_weights, self.buy_dict)
         self.play_weights = self.update_one_qval(reward, self.play_weights, self.play_dict)
-        # self.trash_weights = self.update_one_qval(reward, self.trash_weights, self.trash_dict)
-        if self.discard_dict != {}:
-            self.discard_weights = self.update_one_qval(reward, self.discard_weights, self.discard_dict)
+        self.trash_weights = self.update_one_qval(reward, self.trash_weights, self.trash_dict)
+        self.discard_weights = self.update_one_qval(reward, self.discard_weights, self.discard_dict)
 
     # scores at the end of a game
     def terminal_val (self, g):
@@ -205,6 +204,7 @@ class ComboLearner(players.BigMoney):
         return self.computeActionFromQValues(state)'''
         pass
 
+    # return the best card and its corresponding q-value
     def best_choice(self, game, decision, cur_q_value, actions, features, weights):
         best_q_value = cur_q_value
         best_card = None
@@ -226,6 +226,27 @@ class ComboLearner(players.BigMoney):
 
         return (best_q_value, best_card)
 
+    # return an ordered list of the best cards and their corresponding q-values
+    def best_choices_ordered(self, game, decision, actions, features, weights):
+        options = []
+        for card in actions:
+            new_counts = game.card_counts.copy()
+            new_counts[card] -= 1
+
+            state = decision.state()
+            new_deck = state.hand + state.tableau + state.drawpile + (state.discard+(card,))
+
+            new_features = g2f(new_counts)
+            new_features.extend(c2f(new_deck))
+
+            # TODO: QUESTION - should this be range(len(new_features)) ?
+            qval = sum([new_features[i]*weights[i] for i in range(len(features))])
+            options.append((card, qval))
+
+        # sort in order of highest q-value to lowest q-value
+        options = sorted(options, key=itemgetter(1), reverse=True)
+
+        return options
 
     def make_buy_decision(self, decision):
         """
@@ -290,26 +311,19 @@ class ComboLearner(players.BigMoney):
         # All remaining cards that could be trashed 
         actions = list(decision.state().hand)
 
-        if actions == []:
-            return None
+        cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
-        # TODO: giving me "list index out of range" errors - not sure how to update
-        # the q value here b/c I'm confused about what exactly we're deciding
-        # and what should be returned
+        best_options = self.best_choices_ordered(game, decision, actions, features, weights)
 
-        # cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
+        # Add the actions we take and corresponding Q-value to history to update later
+        for (card, value) in best_options:  
+            if (tuple(features), card) in self.trash_dict:
+                self.trash_dict[(tuple(features), card, cur_q_value)][0] += 1
+            else:
+                self.trash_dict[(tuple(features), card, cur_q_value)] = [1, value]
 
-        # (best_q_value, best_card) = self.best_choice(game, decision, cur_q_value, actions, features, weights)
-
-        # # Add the action we take and corresponding Q-value to history to update later
-        # if (tuple(features), best_card) in self.trash_dict:
-        #     self.trash_dict[(tuple(features), best_card, cur_q_value)][0] += 1
-        # else:
-        #     self.trash_dict[(tuple(features), best_card, cur_q_value)] = [1, best_q_value]
-        # return best_card
-
-        return actions
-
+        best_cards = [x[0] for x in best_options]
+        return best_cards
 
     def make_discard_decision(self, decision):
         features = self.from_state_features_discard(decision)
@@ -319,17 +333,16 @@ class ComboLearner(players.BigMoney):
         # All remaining cards that could be discarded 
         actions = list(decision.state().hand)
 
-        # TODO: I'm not sure how to find the best choice here - confused by the multidecision
-        # rn, this adds q values to the csv but don't know if they're accurate, though
-        # they all seem to have converged after 50 iterations 
-
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
-        (best_q_value, best_card) = self.best_choice(game, decision, cur_q_value, actions, features, weights)
+        best_options = self.best_choices_ordered(game, decision, actions, features, weights)
 
-        # Add the action we take and corresponding Q-value to history to update later
-        if (tuple(features), best_card) in self.discard_dict:
-            self.discard_dict[(tuple(features), best_card, cur_q_value)][0] += 1
-        else:
-            self.discard_dict[(tuple(features), best_card, cur_q_value)] = [1, best_q_value]
-        return [best_card]
+        # Add the actions we take and corresponding Q-value to history to update later
+        for (card, value) in best_options:  
+            if (tuple(features), card) in self.discard_dict:
+                self.discard_dict[(tuple(features), card, cur_q_value)][0] += 1
+            else:
+                self.discard_dict[(tuple(features), card, cur_q_value)] = [1, value]
+
+        best_cards = [x[0] for x in best_options]
+        return best_cards
