@@ -176,8 +176,11 @@ class ComboLearner(players.BigMoney):
     def update_q_values(self, reward):
         self.buy_weights = self.update_one_qval(reward, self.buy_weights, self.buy_dict)
         self.play_weights = self.update_one_qval(reward, self.play_weights, self.play_dict)
-        self.trash_weights = self.update_one_qval(reward, self.trash_weights, self.trash_dict)
-        self.discard_weights = self.update_one_qval(reward, self.discard_weights, self.discard_dict)
+
+        if self.trash_dict != {}:
+            self.trash_weights = self.update_one_qval(reward, self.trash_weights, self.trash_dict)
+        if self.discard_dict != {}:
+            self.discard_weights = self.update_one_qval(reward, self.discard_weights, self.discard_dict)
 
     # scores at the end of a game
     def terminal_val (self, g):
@@ -196,14 +199,6 @@ class ComboLearner(players.BigMoney):
 
         pass
 
-    # TODO: do we need this?
-    def getAction(self, actions):
-        '''if math.random() > 0.05:
-            return random.choice(legalActions)
-
-        return self.computeActionFromQValues(state)'''
-        pass
-
     # return the best card and its corresponding q-value
     def best_choice(self, game, decision, cur_q_value, actions, features, weights):
         best_q_value = cur_q_value
@@ -218,7 +213,6 @@ class ComboLearner(players.BigMoney):
             new_features = g2f(new_counts)
             new_features.extend(c2f(new_deck))
 
-            # TODO: QUESTION - should this be range(len(new_features)) ?
             new_q_value = sum([new_features[i]*weights[i] for i in range(len(features))])
             if new_q_value >= best_q_value:
                 best_q_value = new_q_value
@@ -234,13 +228,22 @@ class ComboLearner(players.BigMoney):
             new_counts[card] -= 1
 
             state = decision.state()
+            # TODO - based on print statements for this, not sure it's correct.
+            # it's only printing out 3 cards? shouldn't it be a lot more (at least 10)?
             new_deck = state.hand + state.tableau + state.drawpile + (state.discard+(card,))
+            # print("DECK")
+            # print(state.hand, state.tableau, state.drawpile, (state.discard+(card,)))
+            # print(new_deck)
+            # print(len(new_deck))
 
             new_features = g2f(new_counts)
             new_features.extend(c2f(new_deck))
 
-            # TODO: QUESTION - should this be range(len(new_features)) ?
-            qval = sum([new_features[i]*weights[i] for i in range(len(features))])
+            # TODO: index error because new features is shorter than features
+            # features is same length as weights
+            # this is not correct, just wanted to get it to run
+            minlen = min([len(new_features), len(weights), len(features)])
+            qval = sum([new_features[i]*weights[i] for i in range(minlen)])
             options.append((card, qval))
 
         # sort in order of highest q-value to lowest q-value
@@ -258,7 +261,7 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be bought 
-        # TODO: function for this already built in - game.card_choices()
+        # TODO: function for this already built in - game.card_choices() ?
         choices = [card for card, count in game.card_counts.items() if count > 0]
         actions = [card for card in choices if card.cost <= decision.coins()]
 
@@ -311,6 +314,9 @@ class ComboLearner(players.BigMoney):
         # All remaining cards that could be trashed 
         actions = list(decision.state().hand)
 
+        if actions == []:
+            return []
+
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
@@ -332,6 +338,9 @@ class ComboLearner(players.BigMoney):
 
         # All remaining cards that could be discarded 
         actions = list(decision.state().hand)
+
+        if actions == []:
+            return []
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
