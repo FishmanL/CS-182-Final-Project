@@ -33,7 +33,7 @@ def g2f (carddict):
 
 
 class ComboLearner(players.AIPlayer):
-    def __init__(self, loadfile = None, reward_fun = "proportional", gamma = 0.5, epsilon = 0.25):
+    def __init__(self, loadfile = None, reward_fun = "proportional", gamma = 0.5, epsilon = 0.25, learning_mode=True):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
@@ -52,6 +52,7 @@ class ComboLearner(players.AIPlayer):
         self.epsilon = epsilon
         self.gamma = gamma
         self.name = "Q-learner"
+        self.learning_mode = learning_mode
         players.AIPlayer.__init__(self)
 
     """
@@ -213,7 +214,10 @@ class ComboLearner(players.AIPlayer):
                     final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
             else:
                 raise ValueError('Invalid reward frunction:' + self.reward_fun)
-            self.update_q_values(final_score)
+
+            # update q-values if in learning mode
+            if self.learning_mode:
+                self.update_q_values(final_score)
 
             return final_score
         raise ValueError('Reached terminal_val without it being terminal state')

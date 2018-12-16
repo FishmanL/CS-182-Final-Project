@@ -2,7 +2,7 @@ import cards
 import dominion
 import game
 import players
-import combobot
+from combobot import *
 import derivbot
 import math
 from game import *
@@ -84,29 +84,35 @@ def testQAgents(player1, player2, iterations):
         elif score2 > score1:
             wins.append(0.0)
         else:
-            wins.append(0.5)
+            wins.append(None)
 
     # return winning percentage
-    win_rate = float(sum(wins)) / float(iterations)
+    wins = filter(lambda x: x is not None, wins)
+    win_rate = float(sum(wins)) / len(wins)
 
     print(game_results)
     print
     print(win_rate)
     return win_rate
 
-# testing loop for
+# testing loop for decreasing epsilon
 def QDecreaseEpsilon(player2=GreedyBot(), iterations=100, reward_fun='proportional',iEpsilon=1.0):
     wins = testQAgents(ComboLearner(reward_fun=reward_fun, epsilon=iEpsilon), player2, 1)
     for i in range(iterations - 1):
         epsilon = iEpsilon/math.exp(i/math.sqrt(iterations))
         wins += testQAgents(ComboLearner(reward_fun=reward_fun, epsilon=epsilon), player2, 1)
 
-    win_rate = wins/float(iterations)
+    win_rate = wins/len(wins)
     print(win_rate)
 
 if __name__ == '__main__':
     #testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 1000)
     #testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
     #testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 1000)
-    testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv'), BigMoney(), 100)
+    # testing function
+    #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv', learning_mode=False), GreedyBot(), 100)
+    #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv', learning_mode=False), chapelComboBot, 100)
+    # training function
+    #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), chapelComboBot, 100)
+    #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), GreedyBot(), 100)
     #QDecreaseEpsilon()
