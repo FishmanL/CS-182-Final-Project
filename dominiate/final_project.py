@@ -30,7 +30,7 @@ def g2f (carddict):
 
 
 class ComboLearner(players.BigMoney):
-    def __init__(self, loadfile = None):
+    def __init__(self, loadfile=None, epsilon=0.25):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2))]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
@@ -46,6 +46,7 @@ class ComboLearner(players.BigMoney):
         self.trash_dict = dict()
         self.discard_dict = dict()
 
+        self.epsilon = epsilon
         self.gamma = 0.5
         self.name = "Q-learner"
         players.BigMoney.__init__(self)
@@ -138,8 +139,7 @@ class ComboLearner(players.BigMoney):
             cur_weights[idx] /= len(new_weights_list)
 
         # normalize the weights from 0 to 1
-        # TODO: QUESTION - I don't think this handles negative weights correctly
-        s = sum(cur_weights)
+        s = sum(abs(cur_weights))
         cur_weights = [i/s for i in cur_weights]
         return cur_weights
 
@@ -194,9 +194,7 @@ class ComboLearner(players.BigMoney):
                 final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
             self.update_q_values(final_score)
             return final_score
-
-        return score /(g2f(g.counts)[3]) # score over remaining provinces
-
+        raise ValueError('Reached terminal_val without it being terminal state')
         pass
 
     # return the best card and its corresponding q-value
@@ -267,6 +265,7 @@ class ComboLearner(players.BigMoney):
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
+        # with probability epsilon, randomly select single
         (best_q_value, best_card) = self.best_choice(game, decision, cur_q_value, actions, features, weights)
 
         # Add the action we take and corresponding Q-value to history to update later
