@@ -341,17 +341,27 @@ class ComboLearner(players.BigMoney):
         if actions == []:
             return []
 
-        cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
+        # sometimes, just choose randomly
+        if random.random() < self.epsilon:
+            random_selection = True
+            actions = random.sample(actions, random.randint(decision.min, decision.max))
+        else:
+            random_selection = False
 
+        cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
         # select best card options
-        selections = []
-        for i in range(min(decision.max,len(best_options))):
-            if best_options[i][1] >= cur_q_value or i < decision.min:
-                selections.append(best_options[i])
-            else:
-                break
+
+        if random_selection:
+            selections = actions
+        else:
+            selections = []
+            for i in range(min(decision.max,len(best_options))):
+                if best_options[i][1] >= cur_q_value or i < decision.min:
+                    selections.append(best_options[i])
+                else:
+                    break
 
         # Add the actions we take and corresponding Q-value to history to update later
         for (card, value) in selections:
@@ -374,16 +384,26 @@ class ComboLearner(players.BigMoney):
         if actions == []:
             return []
 
+        # sometimes, just choose randomly
+        if random.random() < self.epsilon:
+            random_selection = True
+            actions = random.sample(actions, random.randint(decision.min, decision.max))
+        else:
+            random_selection = False
+
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
 
-        selections = []
-        for i in range(min(decision.max,len(best_options))):
-            if best_options[i][1] >= cur_q_value or i < decision.min:
-                selections.append(best_options[i])
-            else:
-                break
+        if random_selection:
+            selections = actions
+        else:
+            selections = []
+            for i in range(min(decision.max,len(best_options))):
+                if best_options[i][1] >= cur_q_value or i < decision.min:
+                    selections.append(best_options[i])
+                else:
+                    break
 
         # Add the actions we take and corresponding Q-value to history to update later
         for (card, value) in selections:
