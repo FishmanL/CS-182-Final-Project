@@ -9,6 +9,7 @@ import derivbot
 # from keras import models, layers, regularizers, preprocessing
 import csv
 from operator import itemgetter
+import random
 
 # each index corresponds to the amount of one specific card
 canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copper, game.silver, game.gold,
@@ -31,8 +32,8 @@ def g2f (carddict):
     return currarr
 
 
-class ComboLearner(players.BigMoney):
-    def __init__(self, loadfile = None, rewardfun = "proportional", gamma = 0.5):
+class ComboLearner(players.AIPlayer):
+    def __init__(self, loadfile = None, rewardfun = "proportional", gamma = 0.5, epsilon = 0.25):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
@@ -48,10 +49,10 @@ class ComboLearner(players.BigMoney):
         self.trash_dict = dict()
         self.discard_dict = dict()
         self.rewardfun = rewardfun
-
+        self.epsilon = epsilon
         self.gamma = gamma
         self.name = "Q-learner"
-        players.BigMoney.__init__(self)
+        players.AIPlayer.__init__(self)
 
     """
     4 separate q learners
@@ -60,7 +61,7 @@ class ComboLearner(players.BigMoney):
     def loadweights(self, filename = "weights.csv"):
         with open(filename, "r") as file:
             reader = csv.reader(file)
-            introws = [[int(r) for r in row] for row in reader]
+            introws = [[float(r) for r in row] for row in reader]
             self.buy_weights = introws[0]
             self.trash_weights = introws[1]
             self.discard_weights = introws[2]
@@ -148,8 +149,7 @@ class ComboLearner(players.BigMoney):
             cur_weights[idx] /= (len(new_weights_list) + 1)
 
         # normalize the weights from 0 to 1
-        # TODO: QUESTION - I don't think this handles negative weights correctly
-        s = (sum(cur_weights) + 0.0001)
+        s = sum(map(abs,cur_weights)) + 0.0001
         cur_weights = [i/s for i in cur_weights]
         return cur_weights
 
@@ -204,9 +204,7 @@ class ComboLearner(players.BigMoney):
                 final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
             self.update_q_values(final_score)
             return final_score
-
-        return score /(g2f(g.counts)[3]) # score over remaining provinces
-
+        raise ValueError('Reached terminal_val without it being terminal state')
         pass
 
     # return the best card and its corresponding q-value
@@ -266,9 +264,6 @@ class ComboLearner(players.BigMoney):
                 features = self.from_state_features_discard(DiscardDecision(newgame))
                 weights = self.discard_weights
 
-            # TODO: index error because new features is shorter than features
-            # features is same length as weights
-            # this is not correct, just wanted to get it to run
             qval = sum([features[i]*weights[i] for i in range(len(features))])
             options.append((card, qval))
 
@@ -286,12 +281,13 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be bought 
-        # TODO: function for this already built in - game.card_choices() ?
-        choices = [card for card, count in game.card_counts.items() if count > 0]
-        actions = [card for card in choices if card.cost <= decision.coins()]
+        actions = decision.choices()
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
+        # with probability epsilon, randomly select action
+        if random.random() < self.epsilon:
+            actions = [random.choice(actions)]
         (best_q_value, best_card) = self.best_choice(game, decision, cur_q_value, actions, features, weights)
 
         # Add the action we take and corresponding Q-value to history to update later
@@ -313,7 +309,10 @@ class ComboLearner(players.BigMoney):
         weights = self.play_weights
         game = decision.game
 
-        actions = [card for card in decision.state().hand if card.isAction()]
+        actions = decision.choices()
+
+        if random.random() < self.epsilon:
+            actions = [random.choice(actions)]
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
@@ -337,23 +336,45 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be trashed 
-        actions = list(decision.state().hand)
+        actions = decision.choices()
 
         if actions == []:
             return []
 
+        # sometimes, just choose randomly
+        if random.random() < self.epsilon:
+            random_selection = True
+            if not decision.max:
+                decision.max = len(actions)
+            if not decision.min:
+                decision.min = 0
+            actions = random.sample(actions, min(random.randint(decision.min, decision.max), len(actions)))
+        else:
+            random_selection = False
+
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
+        # select best card options
+
+        if random_selection:
+            selections = best_options
+        else:
+            selections = []
+            for i in range(min(decision.max,len(best_options))):
+                if best_options[i][1] >= cur_q_value or i < decision.min:
+                    selections.append(best_options[i])
+                else:
+                    break
 
         # Add the actions we take and corresponding Q-value to history to update later
-        for (card, value) in best_options:  
+        for (card, value) in selections:
             if (tuple(features), card) in self.trash_dict:
                 self.trash_dict[(tuple(features), card, cur_q_value)][0] += 1
             else:
                 self.trash_dict[(tuple(features), card, cur_q_value)] = [1, value]
 
-        best_cards = [x[0] for x in best_options]
+        best_cards = [x[0] for x in selections]
         return best_cards
 
     def make_discard_decision(self, decision):
@@ -362,21 +383,42 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be discarded 
-        actions = list(decision.state().hand)
+        actions = decision.choices()
 
         if actions == []:
             return []
+
+        # sometimes, just choose randomly
+        if random.random() < self.epsilon:
+            random_selection = True
+            if not decision.max:
+                decision.max = len(actions)
+            if not decision.min:
+                decision.min = 0
+            actions = random.sample(actions, min(random.randint(decision.min, decision.max), len(actions)))
+        else:
+            random_selection = False
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
 
+        if random_selection:
+            selections = best_options
+        else:
+            selections = []
+            for i in range(min(decision.max,len(best_options))):
+                if best_options[i][1] >= cur_q_value or i < decision.min:
+                    selections.append(best_options[i])
+                else:
+                    break
+
         # Add the actions we take and corresponding Q-value to history to update later
-        for (card, value) in best_options:  
+        for (card, value) in selections:
             if (tuple(features), card) in self.discard_dict:
                 self.discard_dict[(tuple(features), card, cur_q_value)][0] += 1
             else:
                 self.discard_dict[(tuple(features), card, cur_q_value)] = [1, value]
 
-        best_cards = [x[0] for x in best_options]
+        best_cards = [x[0] for x in selections]
         return best_cards

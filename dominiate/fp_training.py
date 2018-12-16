@@ -55,6 +55,7 @@ def testNotQAgents(player1, player2, iterations):
 # testing loop for Q-learning agents
 def testQAgents(player1, player2, iterations):
     game_results = []
+    wins = []
 
     # play specified number of games
     for i in range(iterations):
@@ -68,12 +69,29 @@ def testQAgents(player1, player2, iterations):
         if isinstance(player2, ComboLearner):
             player1.terminal_val(final_game)
             player2.saveweights("test_player2.csv")
-        
+
+        if results[0][0].name == player1.name:
+            score1 = results[0][1]
+            score2 = results[1][1]
+        else:
+            score1 = results[1][1]
+            score2 = results[0][1]
+
+        # 1 if player 1 wins, 0 otherwise
+        if score1 > score2:
+            wins.append(1)
+        else:
+            wins.append(0)
+
+    # return winning percentage
+    win_rate = float(sum(wins)) / float(iterations)
 
     print(game_results)
+    print
+    print(win_rate)
 
 if __name__ == '__main__':
     #testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 1000)
     #testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
     #testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 1000)
-    testQAgents(ComboLearner(), GreedyBot(), 100)
+    testQAgents(ComboLearner(), RandomBot(), 100)
