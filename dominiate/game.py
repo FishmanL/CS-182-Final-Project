@@ -512,7 +512,7 @@ class Game(object):
         various actions.
         """
         return Game(
-            [state.simulated_from_here() if state is self.state()
+            [state.simulate() if state is self.state()
                                          else state.simulate()
              for state in self.playerstates],
             self.card_counts,
