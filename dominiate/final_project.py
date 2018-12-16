@@ -32,7 +32,7 @@ def g2f (carddict):
 
 
 class ComboLearner(players.BigMoney):
-    def __init__(self, loadfile = None):
+    def __init__(self, loadfile = None, rewardfun = "proportional", gamma = 0.5):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
@@ -47,8 +47,9 @@ class ComboLearner(players.BigMoney):
         self.play_dict = dict()
         self.trash_dict = dict()
         self.discard_dict = dict()
+        self.rewardfun = rewardfun
 
-        self.gamma = 0.5
+        self.gamma = gamma
         self.name = "Q-learner"
         players.BigMoney.__init__(self)
 
@@ -262,7 +263,7 @@ class ComboLearner(players.BigMoney):
                 state = ngame.state()
                 state = state.discard_card(card)
                 newgame = ngame.replace_current_state(state)
-                features = self.from_state_features_trash(DiscardDecision(newgame))
+                features = self.from_state_features_discard(DiscardDecision(newgame))
                 weights = self.discard_weights
 
             # TODO: index error because new features is shorter than features
