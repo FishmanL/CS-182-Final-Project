@@ -198,11 +198,23 @@ class ComboLearner(players.AIPlayer):
         playerscores = [state.score() for state in g.playerstates]
         score = state.score()
         if game.Game.over(g):
-            if score >= max(playerscores):
-                final_score = 100*(len(playerscores)) + score # reward for winning larger games
+            # two potential terminals, depending on bot definition
+            if self.reward_fun == 'zero_sum':
+                if score < max(playerscores):
+                    final_score = -1
+                elif score > max(playerscores):
+                    final_score = 1
+                else:
+                    final_score = 0
+            elif self.reward_fun == 'proportional':
+                if score >= max(playerscores):
+                    final_score = 100*(len(playerscores)) + score # reward for winning larger games
+                else:
+                    final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
             else:
-                final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
+                raise ValueError('Invalid reward frunction:' + self.reward_fun)
             self.update_q_values(final_score)
+
             return final_score
         raise ValueError('Reached terminal_val without it being terminal state')
         pass
