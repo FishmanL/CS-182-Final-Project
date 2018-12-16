@@ -33,7 +33,7 @@ def g2f (carddict):
 
 
 class ComboLearner(players.AIPlayer):
-    def __init__(self, loadfile=None, epsilon=0.25):
+    def __init__(self, loadfile = None, rewardfun = "proportional", gamma = 0.5, epsilon = 0.25):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
@@ -48,9 +48,9 @@ class ComboLearner(players.AIPlayer):
         self.play_dict = dict()
         self.trash_dict = dict()
         self.discard_dict = dict()
-
+        self.rewardfun = rewardfun
         self.epsilon = epsilon
-        self.gamma = 0.5
+        self.gamma = gamma
         self.name = "Q-learner"
         players.AIPlayer.__init__(self)
 
