@@ -32,7 +32,7 @@ def g2f (carddict):
     return currarr
 
 
-class ComboLearner(players.BigMoney):
+class ComboLearner(players.AIPlayer):
     def __init__(self, loadfile=None, epsilon=0.25):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
@@ -52,7 +52,7 @@ class ComboLearner(players.BigMoney):
         self.epsilon = epsilon
         self.gamma = 0.5
         self.name = "Q-learner"
-        players.BigMoney.__init__(self)
+        players.AIPlayer.__init__(self)
 
     """
     4 separate q learners
@@ -61,7 +61,7 @@ class ComboLearner(players.BigMoney):
     def loadweights(self, filename = "weights.csv"):
         with open(filename, "r") as file:
             reader = csv.reader(file)
-            introws = [[int(r) for r in row] for row in reader]
+            introws = [[float(r) for r in row] for row in reader]
             self.buy_weights = introws[0]
             self.trash_weights = introws[1]
             self.discard_weights = introws[2]
@@ -344,7 +344,11 @@ class ComboLearner(players.BigMoney):
         # sometimes, just choose randomly
         if random.random() < self.epsilon:
             random_selection = True
-            actions = random.sample(actions, random.randint(decision.min, decision.max))
+            if not decision.max:
+                decision.max = len(actions)
+            if not decision.min:
+                decision.min = 0
+            actions = random.sample(actions, min(random.randint(decision.min, decision.max), len(actions)))
         else:
             random_selection = False
 
@@ -354,7 +358,7 @@ class ComboLearner(players.BigMoney):
         # select best card options
 
         if random_selection:
-            selections = actions
+            selections = best_options
         else:
             selections = []
             for i in range(min(decision.max,len(best_options))):
@@ -387,7 +391,11 @@ class ComboLearner(players.BigMoney):
         # sometimes, just choose randomly
         if random.random() < self.epsilon:
             random_selection = True
-            actions = random.sample(actions, random.randint(decision.min, decision.max))
+            if not decision.max:
+                decision.max = len(actions)
+            if not decision.min:
+                decision.min = 0
+            actions = random.sample(actions, min(random.randint(decision.min, decision.max), len(actions)))
         else:
             random_selection = False
 
@@ -396,7 +404,7 @@ class ComboLearner(players.BigMoney):
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
 
         if random_selection:
-            selections = actions
+            selections = best_options
         else:
             selections = []
             for i in range(min(decision.max,len(best_options))):
