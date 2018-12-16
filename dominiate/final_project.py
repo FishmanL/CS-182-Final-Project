@@ -33,7 +33,7 @@ def g2f (carddict):
 
 
 class ComboLearner(players.AIPlayer):
-    def __init__(self, loadfile = None, rewardfun = "proportional", gamma = 0.5, epsilon = 0.25):
+    def __init__(self, loadfile = None, reward_fun = "proportional", gamma = 0.5, epsilon = 0.25):
         if loadfile is None:
             self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
@@ -48,7 +48,7 @@ class ComboLearner(players.AIPlayer):
         self.play_dict = dict()
         self.trash_dict = dict()
         self.discard_dict = dict()
-        self.rewardfun = rewardfun
+        self.reward_fun = reward_fun
         self.epsilon = epsilon
         self.gamma = gamma
         self.name = "Q-learner"
@@ -199,7 +199,7 @@ class ComboLearner(players.AIPlayer):
         score = state.score()
         if game.Game.over(g):
             # two potential terminals, depending on bot definition
-            if self.reward_fun == 'zero_sum':
+            if self.reward_fun == 'zero sum':
                 if score < max(playerscores):
                     final_score = -1
                 elif score > max(playerscores):

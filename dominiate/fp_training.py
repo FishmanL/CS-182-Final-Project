@@ -4,6 +4,7 @@ import game
 import players
 import combobot
 import derivbot
+import math
 from game import *
 from players import *
 from basic_ai import *
@@ -67,7 +68,7 @@ def testQAgents(player1, player2, iterations):
             player1.terminal_val(final_game)
             player1.saveweights("test_player1.csv")
         if isinstance(player2, ComboLearner):
-            player1.terminal_val(final_game)
+            player2.terminal_val(final_game)
             player2.saveweights("test_player2.csv")
 
         if results[0][0].name == player1.name:
@@ -79,9 +80,11 @@ def testQAgents(player1, player2, iterations):
 
         # 1 if player 1 wins, 0 otherwise
         if score1 > score2:
-            wins.append(1)
+            wins.append(1.0)
+        elif score2 > score1:
+            wins.append(0.0)
         else:
-            wins.append(0)
+            wins.append(0.5)
 
     # return winning percentage
     win_rate = float(sum(wins)) / float(iterations)
@@ -89,9 +92,21 @@ def testQAgents(player1, player2, iterations):
     print(game_results)
     print
     print(win_rate)
+    return win_rate
+
+# testing loop for
+def QDecreaseEpsilon(player2=GreedyBot(), iterations=100, reward_fun='proportional',iEpsilon=1.0):
+    wins = testQAgents(ComboLearner(reward_fun=reward_fun, epsilon=iEpsilon), player2, 1)
+    for i in range(iterations - 1):
+        epsilon = iEpsilon/math.exp(i/math.sqrt(iterations))
+        wins += testQAgents(ComboLearner(reward_fun=reward_fun, epsilon=epsilon), player2, 1)
+
+    win_rate = wins/float(iterations)
+    print(win_rate)
 
 if __name__ == '__main__':
     #testNotQAgents(players.BigMoney(), basic_ai.GreedyBot(), 1000)
     #testNotQAgents(basic_ai.GreedyBot(), basic_ai.GreedyToTest(), 100)
     #testNotQAgents(basic_ai.RandomBot(), basic_ai.RandomToTest(), 1000)
-    testQAgents(ComboLearner(), GreedyBot(), 1)
+    testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv'), BigMoney(), 100)
+    #QDecreaseEpsilon()
