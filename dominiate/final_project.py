@@ -1,12 +1,15 @@
 import cards
 import dominion
 import game
+from game import ActDecision, TrashDecision, BuyDecision, DiscardDecision
+import copy
 import players
 import combobot
 import derivbot
 # from keras import models, layers, regularizers, preprocessing
 import csv
 from operator import itemgetter
+import random
 
 # each index corresponds to the amount of one specific card
 canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copper, game.silver, game.gold,
@@ -16,23 +19,23 @@ canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copp
 
 # converts from an array of cards into an array of canonical numbered cards
 def c2f (cards):
-    currarr = [0 for _ in canonical_order]
+    currarr = [0.0 for _ in canonical_order]
     for c in cards:
-        currarr[canonical_order.index(c)] += 1
+        currarr[canonical_order.index(c)] += 1.0 / (len(cards))
     return currarr
 
 # converts from a dict of cards into an array of canonical numbered cards
 def g2f (carddict):
-    currarr = [0 for _ in canonical_order]
+    currarr = [0.0 for _ in canonical_order]
     for (c, count) in carddict.items():
-        currarr[canonical_order.index(c)] =count
+        currarr[canonical_order.index(c)] = count / (sum([value for k, value in carddict.items()]))
     return currarr
 
 
-class ComboLearner(players.BigMoney):
-    def __init__(self, loadfile = None):
+class ComboLearner(players.AIPlayer):
+    def __init__(self, loadfile = None, reward_fun = "proportional", gamma = 0.5, epsilon = 0.25, learning_mode=True):
         if loadfile is None:
-            self.buy_weights = [0 for _ in range((len(canonical_order) * 2))]
+            self.buy_weights = [0 for _ in range((len(canonical_order) * 2) + 2)]
             self.trash_weights = [0 for _ in range((len(canonical_order) * 3))]
             self.discard_weights = [0 for _ in range((len(canonical_order) + 3))]
             self.play_weights = [0 for _ in range((len(canonical_order) + 3))]
@@ -45,10 +48,12 @@ class ComboLearner(players.BigMoney):
         self.play_dict = dict()
         self.trash_dict = dict()
         self.discard_dict = dict()
-
-        self.gamma = 0.5
+        self.reward_fun = reward_fun
+        self.epsilon = epsilon
+        self.gamma = gamma
         self.name = "Q-learner"
-        players.BigMoney.__init__(self)
+        self.learning_mode = learning_mode
+        players.AIPlayer.__init__(self)
 
     """
     4 separate q learners
@@ -57,7 +62,7 @@ class ComboLearner(players.BigMoney):
     def loadweights(self, filename = "weights.csv"):
         with open(filename, "r") as file:
             reader = csv.reader(file)
-            introws = [[int(r) for r in row] for row in reader]
+            introws = [[float(r) for r in row] for row in reader]
             self.buy_weights = introws[0]
             self.trash_weights = introws[1]
             self.discard_weights = introws[2]
@@ -79,19 +84,25 @@ class ComboLearner(players.BigMoney):
                 writer.writerow(weight)
     
     # features for buying decisions, when you add a card from game to discard pile
-    def from_state_features_buy (self, decision):
-        game = decision.game
-        deck = decision.state().all_cards()
+    def from_state_features_buy (self, decision, game = None, state = None):
+        if game is None:
+            game = decision.game
+        if state is None:
+            state = decision.state()
+        deck = state.all_cards()
         a = g2f(game.card_counts)
         a.extend(c2f(deck))
+        a.extend([state.buys, state.hand_value()])
         return a
         pass
     
     # features for which cards to permanently remove from the deck
-    def from_state_features_trash (self, decision):
-        game = decision.game
-        state = decision.state()
-        deck = decision.state().all_cards()
+    def from_state_features_trash (self, decision, game = None, state = None):
+        if game is None:
+            game = decision.game
+        if state is None:
+            state = decision.state()
+        deck = state.all_cards()
         a = g2f(game.card_counts)
         a.extend(c2f(deck))
         a.extend(c2f(state.hand))
@@ -99,8 +110,9 @@ class ComboLearner(players.BigMoney):
         pass
 
     # features for playing a card (action) from hand
-    def from_state_features_play (self, decision):
-        state = decision.game.state()
+    def from_state_features_play (self, decision, state = None):
+        if state is None:
+            state = decision.state()
         hand = state.hand
         a = c2f(hand)
         a.extend([state.actions, state.buys, state.hand_value()])
@@ -135,11 +147,10 @@ class ComboLearner(players.BigMoney):
             cur_weights[idx] = 0
             for l in new_weights_list:
                 cur_weights[idx] += l[idx]
-            cur_weights[idx] /= len(new_weights_list)
+            cur_weights[idx] /= (len(new_weights_list) + 1)
 
         # normalize the weights from 0 to 1
-        # TODO: QUESTION - I don't think this handles negative weights correctly
-        s = sum(cur_weights)
+        s = sum(map(abs,cur_weights)) + 0.0001
         cur_weights = [i/s for i in cur_weights]
         return cur_weights
 
@@ -188,32 +199,62 @@ class ComboLearner(players.BigMoney):
         playerscores = [state.score() for state in g.playerstates]
         score = state.score()
         if game.Game.over(g):
-            if score >= max(playerscores):
-                final_score = 100*(len(playerscores)) + score # reward for winning larger games
+            # two potential terminals, depending on bot definition
+            if self.reward_fun == 'zero sum':
+                if score < max(playerscores):
+                    final_score = -1
+                elif score > max(playerscores):
+                    final_score = 1
+                else:
+                    final_score = 0
+            elif self.reward_fun == 'proportional':
+                if score >= max(playerscores):
+                    final_score = 100*(len(playerscores)) + score # reward for winning larger games
+                else:
+                    final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
             else:
-                final_score = -max(playerscores) + score # you lost, but you should still get some reward for being close
-            self.update_q_values(final_score)
+                raise ValueError('Invalid reward frunction:' + self.reward_fun)
+
+            # update q-values if in learning mode
+            if self.learning_mode:
+                self.update_q_values(final_score)
+
             return final_score
-
-        return score /(g2f(g.counts)[3]) # score over remaining provinces
-
+        raise ValueError('Reached terminal_val without it being terminal state')
         pass
 
     # return the best card and its corresponding q-value
     def best_choice(self, game, decision, cur_q_value, actions, features, weights):
+
         best_q_value = cur_q_value
         best_card = None
         for card in actions: # Already processed None
-            new_counts = game.card_counts.copy()
-            new_counts[card] -= 1
+            ngame = game.simulated_copy()
+            if decision is ActDecision:
+                state = ngame.state()
+                if card is None:
+                    newgame = ngame.change_current_state(
+                        delta_actions=-state.actions
+                    )
+                else:
+                    newgame = card.perform_action(ngame.current_play_action(card))
+                features = self.from_state_features_play(ActDecision(newgame))
+                weights = self.play_weights
 
-            state = decision.state()
-            new_deck = state.hand + state.tableau + state.drawpile + (state.discard+(card,))
+            if decision is BuyDecision:
+                state = ngame.state()
+                if card is None:
+                    newgame = ngame.change_current_state(
+                        delta_buys=-state.buys
+                    )
+                else:
+                    newgame = ngame.remove_card(card).replace_current_state(
+                        state.gain(card).change(delta_buys=-1, delta_coins=-card.cost)
+                    )
+                features = self.from_state_features_buy(BuyDecision(newgame))
+                weights = self.buy_weights
 
-            new_features = g2f(new_counts)
-            new_features.extend(c2f(new_deck))
-
-            new_q_value = sum([new_features[i]*weights[i] for i in range(len(features))])
+            new_q_value = sum([features[i]*weights[i] for i in range(len(features))])
             if new_q_value >= best_q_value:
                 best_q_value = new_q_value
                 best_card = card
@@ -224,31 +265,26 @@ class ComboLearner(players.BigMoney):
     def best_choices_ordered(self, game, decision, actions, features, weights):
         options = []
         for card in actions:
-            new_counts = game.card_counts.copy()
-            new_counts[card] -= 1
+            ngame = game.simulated_copy()
+            if decision is TrashDecision:
+                state = ngame.state()
 
-            state = decision.state()
-            # TODO - based on print statements for this, not sure it's correct.
-            # it's only printing out 3 cards? shouldn't it be a lot more (at least 10)?
-            new_deck = state.hand + state.tableau + state.drawpile + (state.discard+(card,))
-            # print("DECK")
-            # print(state.hand, state.tableau, state.drawpile, (state.discard+(card,)))
-            # print(new_deck)
-            # print(len(new_deck))
+                state = state.trash_card(card)
+                newgame = ngame.replace_current_state(state)
+                features = self.from_state_features_trash(TrashDecision(newgame))
+                weights = self.trash_weights
+            if decision is DiscardDecision:
+                state = ngame.state()
+                state = state.discard_card(card)
+                newgame = ngame.replace_current_state(state)
+                features = self.from_state_features_discard(DiscardDecision(newgame))
+                weights = self.discard_weights
 
-            new_features = g2f(new_counts)
-            new_features.extend(c2f(new_deck))
-
-            # TODO: index error because new features is shorter than features
-            # features is same length as weights
-            # this is not correct, just wanted to get it to run
-            minlen = min([len(new_features), len(weights), len(features)])
-            qval = sum([new_features[i]*weights[i] for i in range(minlen)])
+            qval = sum([features[i]*weights[i] for i in range(len(features))])
             options.append((card, qval))
 
         # sort in order of highest q-value to lowest q-value
         options = sorted(options, key=itemgetter(1), reverse=True)
-
         return options
 
     def make_buy_decision(self, decision):
@@ -261,12 +297,13 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be bought 
-        # TODO: function for this already built in - game.card_choices() ?
-        choices = [card for card, count in game.card_counts.items() if count > 0]
-        actions = [card for card in choices if card.cost <= decision.coins()]
+        actions = decision.choices()
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
+        # with probability epsilon, randomly select action
+        if random.random() < self.epsilon:
+            actions = [random.choice(actions)]
         (best_q_value, best_card) = self.best_choice(game, decision, cur_q_value, actions, features, weights)
 
         # Add the action we take and corresponding Q-value to history to update later
@@ -288,7 +325,10 @@ class ComboLearner(players.BigMoney):
         weights = self.play_weights
         game = decision.game
 
-        actions = [card for card in decision.state().hand if card.isAction()]
+        actions = decision.choices()
+
+        if random.random() < self.epsilon:
+            actions = [random.choice(actions)]
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
@@ -312,23 +352,45 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be trashed 
-        actions = list(decision.state().hand)
+        actions = decision.choices()
 
         if actions == []:
             return []
 
+        # sometimes, just choose randomly
+        if random.random() < self.epsilon:
+            random_selection = True
+            if not decision.max:
+                decision.max = len(actions)
+            if not decision.min:
+                decision.min = 0
+            actions = random.sample(actions, min(random.randint(decision.min, decision.max), len(actions)))
+        else:
+            random_selection = False
+
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
+        # select best card options
+
+        if random_selection:
+            selections = best_options
+        else:
+            selections = []
+            for i in range(min(decision.max,len(best_options))):
+                if best_options[i][1] >= cur_q_value or i < decision.min:
+                    selections.append(best_options[i])
+                else:
+                    break
 
         # Add the actions we take and corresponding Q-value to history to update later
-        for (card, value) in best_options:  
+        for (card, value) in selections:
             if (tuple(features), card) in self.trash_dict:
                 self.trash_dict[(tuple(features), card, cur_q_value)][0] += 1
             else:
                 self.trash_dict[(tuple(features), card, cur_q_value)] = [1, value]
 
-        best_cards = [x[0] for x in best_options]
+        best_cards = [x[0] for x in selections]
         return best_cards
 
     def make_discard_decision(self, decision):
@@ -337,21 +399,42 @@ class ComboLearner(players.BigMoney):
         game = decision.game
 
         # All remaining cards that could be discarded 
-        actions = list(decision.state().hand)
+        actions = decision.choices()
 
         if actions == []:
             return []
+
+        # sometimes, just choose randomly
+        if random.random() < self.epsilon:
+            random_selection = True
+            if not decision.max:
+                decision.max = len(actions)
+            if not decision.min:
+                decision.min = 0
+            actions = random.sample(actions, min(random.randint(decision.min, decision.max), len(actions)))
+        else:
+            random_selection = False
 
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
 
+        if random_selection:
+            selections = best_options
+        else:
+            selections = []
+            for i in range(min(decision.max,len(best_options))):
+                if best_options[i][1] >= cur_q_value or i < decision.min:
+                    selections.append(best_options[i])
+                else:
+                    break
+
         # Add the actions we take and corresponding Q-value to history to update later
-        for (card, value) in best_options:  
+        for (card, value) in selections:
             if (tuple(features), card) in self.discard_dict:
                 self.discard_dict[(tuple(features), card, cur_q_value)][0] += 1
             else:
                 self.discard_dict[(tuple(features), card, cur_q_value)] = [1, value]
 
-        best_cards = [x[0] for x in best_options]
+        best_cards = [x[0] for x in selections]
         return best_cards
