@@ -12,7 +12,6 @@ from combobot import *
 from cards import variable_cards
 from collections import defaultdict
 import random
-# from keras import models, layers, regularizers, preprocessing
 
 import csv
 from final_project import *
@@ -24,9 +23,7 @@ from final_project import *
 #                               and lowest cost to discard/trash
 # BigMoney()                built-in, basic ai. An agent that aims to buy money
 #                               and then buy victory
-# SmithyBot()               built-in, basic ai
-# HillClimbBot              built-in, basic ai
-# ... any more that we create
+# ChapelBot()               built-in, basic ai
 
 # testing loop for non-Q learning agents
 def testNotQAgents(player1, player2, iterations):
@@ -87,12 +84,15 @@ def testQAgents(player1, player2, iterations):
             wins.append(None)
 
     # return winning percentage
-    wins = filter(lambda x: x is not None, wins)
-    win_rate = float(sum(wins)) / len(wins)
+    wins_no_ties = filter(lambda x: x is not None, wins)
+    win_rate = float(sum(wins_no_ties)) / len(wins)
+    tie_rate = float(iterations - len(wins_no_ties)) / len(wins)
 
     print(game_results)
-    print
-    print(win_rate)
+    print("WIN RATE: " + str(win_rate))
+    print("TIE RATE: " + str(tie_rate))
+    print("LOSE RATE: " + str(1.0-tie_rate-win_rate))
+    print(wins)
     return win_rate
 
 # testing loop for decreasing epsilon
@@ -113,6 +113,6 @@ if __name__ == '__main__':
     #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv', learning_mode=False), GreedyBot(), 100)
     #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv', learning_mode=False), chapelComboBot, 100)
     # training function
-    #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), chapelComboBot, 100)
-    #testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), GreedyBot(), 100)
+    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), chapelComboBot, 100)
+    testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), GreedyBot(), 10)
     #QDecreaseEpsilon()
