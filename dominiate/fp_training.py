@@ -124,7 +124,7 @@ def QDecreaseEpsilon(player2=GreedyBot(), iterations=100, reward_fun='proportion
 
 # train on three AIs iteratively
 def iterativeTraining(opponent1=GreedyBot(), opponent2=BigMoney(), opponent3=chapelComboBot, iterations=100, reward='proportional'):
-	p1 = ComboLearner(reward_fun=reward)
+    p1 = ComboLearner(reward_fun=reward)
     wins, ties = testQAgents(p1, GreedyBot(), 1)
     for i in range(int((iterations-1) / 3)):
         win1, tie1 = testQAgents(p1, opponent1, 1)
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     #########################################
 
     # Bot 17
-    # iterativeTraining()
+     iterativeTraining()
     #  testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot17.csv', learning_mode=False), RandomBot(), 100)
     #  print("BOT17LOOK1")
     #  testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot17.csv', learning_mode=False), GreedyBot(), 100)
