@@ -44,6 +44,7 @@ class ComboLearner(players.AIPlayer):
         else:
             self.loadweights(filename=loadfile)
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
+            print self.weights
 
         self.buy_dict = dict()
         self.play_dict = dict()
@@ -83,6 +84,7 @@ class ComboLearner(players.AIPlayer):
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
             for weight in self.weights:
                 writer.writerow(weight)
+        print self.weights
     
     # features for buying decisions, when you add a card from game to discard pile
     def from_state_features_buy (self, decision, game = None, state = None):
