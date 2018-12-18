@@ -99,15 +99,6 @@ class RandomBot(AIPlayer):
                 chosen.append(latest)
         return chosen
 
-class RandomToTest(RandomBot):
-    """
-    This AI randomly selects an option from among those available
-    """
-    def __init__(self):
-        if not hasattr(self, 'name'):
-            self.name = 'RandomToTest'
-        AIPlayer.__init__(self)
-
 class GreedyBot(AIPlayer):
     """
     This AI chooses the card with highest value to buy and lowest cost to discard/trash
@@ -142,15 +133,6 @@ class GreedyBot(AIPlayer):
         chosen = []
         choices = self.order_cards(decision.choices())
         return choices[0:decision.min]
-
-class GreedyToTest(AIPlayer):
-    """
-    This AI chooses the card with highest value to buy and lowest cost to discard/trash
-    """
-    def __init__(self):
-        if not hasattr(self, 'name'):
-            self.name = 'GreedyToTest'
-        AIPlayer.__init__(self)
    
 def buying_value(coins, buys):
     if coins > buys*8: coins = buys*8

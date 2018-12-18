@@ -2,7 +2,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-### FIRST SET OF GRAPHS: CUMULATIVE WIN RATE DURING TRAINING ###
+
+#####################################################
+### GRAPHS 1: CUMULATIVE WIN RATE DURING TRAINING ###
+#####################################################
+
 
 # get a list of the cumulative win rate during training
 def getTrainingWins(index, winList):
@@ -35,7 +39,11 @@ def graphTrainingWins(trainedAgainst, botA, listA, botB, listB, botC, listC, bot
 	plt.title(trainedAgainst + ": Cumulative Win Rate During Training")
 	plt.show()
 
-### SECOND SET OF GRAPHS: Q-VALUES CONVERGING IN TRAINING PHASE ###
+
+#######################################################
+### GRAPHS 2: Q-VALUES CONVERGING IN TRAINING PHASE ###
+#######################################################
+
 
 def graphQValues(bot, csv_name):
 	# because there are different numbers of features, set N = the max # for accurate csv reading
@@ -93,8 +101,12 @@ def graphQValues(bot, csv_name):
 	plt.title(bot + ": Q-Values Converging in Training Phase")
 	plt.show()
 
-### THIRD SET OF GRAPHS: WIN/TIE/LOSS PERCENTAGES FOR TRAINED BOTS ###
-		### TESTED AGAINST MULTIPLE OPPONENTS ###
+
+######################################################
+### GRAPHS 3: WIN/TIE/LOSS RATES FOR TRAINED BOTS, ###
+### 	  TESTED AGAINST MULTIPLE OPPONENTS 	   ###
+######################################################
+
 
 def graphTestOutcomes(bot, winRates, tieRates, lossRates):
 	r = [0, 1, 2, 3]	# win, tie, loss
@@ -117,6 +129,8 @@ def graphTestOutcomes(bot, winRates, tieRates, lossRates):
 # code for graphTestOutcomes modified from:
 # https://python-graph-gallery.com/13-percent-stacked-barplot/
 
+# TODO - potential other graphs like scatterplot by opponent not training
+
 if __name__ == '__main__':
 	# bot01, list01 = getTrainingWins('bot01', [None, None, None, None, None, None, None, None, None])
 	# bot02, list02 = getTrainingWins('bot02', [0.0, None, 1.0, 0.0, 0.0, 1.0, 0.0, None, 1.0])
@@ -124,7 +138,7 @@ if __name__ == '__main__':
 	# bot04, list04 = getTrainingWins('bot04', [None, None, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0])
 	# graphTrainingWins('RandomBot', bot01, list01, bot02, list02, bot03, list03, bot04, list04)
 
-	# graphQValues('bot01', 'test_player1.csv')
+	# graphQValues('bot01', 'graphtest.csv')
 
-	graphTestOutcomes('TestBot', [0.5, 0.1, 0.0, 0.9], [0.2, 0.6, 0.5, 0.05], [0.3, 0.3, 0.5, 0.05])
+	# graphTestOutcomes('TestBot', [0.5, 0.1, 0.0, 0.9], [0.2, 0.6, 0.5, 0.05], [0.3, 0.3, 0.5, 0.05])
 
