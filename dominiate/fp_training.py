@@ -128,8 +128,8 @@ def iterativeTraining(opponent1=GreedyBot(), opponent2=BigMoney(), opponent3=cha
     wins, ties = testQAgents(p1, GreedyBot(), 1)
     for i in range(int((iterations-1) / 3)):
         win1, tie1 = testQAgents(p1, opponent1, 1)
-        win2, tie2 = testQAgents(p2, opponent2, 1)
-        win3, tie3 = testQAgents(p3, opponent3, 1)
+        win2, tie2 = testQAgents(p1, opponent2, 1)
+        win3, tie3 = testQAgents(p1, opponent3, 1)
         wins = wins + win1 + win2 + win3
         ties = ties + tie1 + tie2 + tie3
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     #########################################
 
     # Bot 17
-    # iterativeTraining()
+     iterativeTraining()
     #  testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot17.csv', learning_mode=False), RandomBot(), 100)
     #  print("BOT17LOOK1")
     #  testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot17.csv', learning_mode=False), GreedyBot(), 100)
