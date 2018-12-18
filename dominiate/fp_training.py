@@ -205,11 +205,11 @@ if __name__ == '__main__':
     ###############################################
 
     # Bot 01
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), RandomBot(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), RandomBot(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), GreedyBot(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), BigMoney(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), chapelComboBot, 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), RandomBot(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), RandomBot(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), GreedyBot(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), BigMoney(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 02
     # QDecreaseEpsilon(RandomBot())
