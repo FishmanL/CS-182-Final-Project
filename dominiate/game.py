@@ -599,6 +599,9 @@ class Game(object):
         game = self
         while not game.over():
             game = game.take_turn()
+            # add check for infinite loops
+            if game.round >= 100:
+                continue
         scores = [(state.player, state.score()) for state in game.playerstates]
 
         self.log.info("End of game.")
