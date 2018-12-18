@@ -60,7 +60,7 @@ class ComboLearner(players.AIPlayer):
     """
     # gets four sets of weights from a csv file, if it exists
     def loadweights(self, filename = "weights.csv"):
-        with open(filename, "r") as file:
+        with open(filename, "r+") as file:
             reader = csv.reader(file)
             introws = [[float(r) for r in row] for row in reader]
             self.buy_weights = introws[0]
@@ -195,11 +195,12 @@ class ComboLearner(players.AIPlayer):
         pass
 
     # return the best card and its corresponding q-value
-    def best_choice(self, game, decision, cur_q_value, actions, features, weights):
+    def best_choice(self, g, decision, cur_q_value, actions, features, weights):
         best_q_value = cur_q_value
         best_card = None
         for card in actions: # Already processed None
-            ngame = game.simulated_copy()
+            ngame = g.simulated_copy()
+            newgame = ngame
             if decision is ActDecision:
                 state = ngame.state()
                 if card is None:
@@ -224,7 +225,11 @@ class ComboLearner(players.AIPlayer):
                 features = self.from_state_features_buy(BuyDecision(newgame))
                 weights = self.buy_weights
 
-            new_q_value = sum([features[i]*weights[i] for i in range(len(features))])
+
+            if game.Game.over(newgame):
+                new_q_value = self.terminal_val(newgame)
+            else:
+                new_q_value = sum([features[i]*weights[i] for i in range(len(features))])
             if new_q_value >= best_q_value:
                 best_q_value = new_q_value
                 best_card = card

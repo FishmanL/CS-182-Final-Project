@@ -129,17 +129,16 @@ def iterativeTraining(opponent1=GreedyBot(), opponent2=BigMoney(), opponent3=cha
     print("LOSE RATE: " + str(1.0-tie_rate-win_rate))
 
 if __name__ == '__main__':
-
     ###############################################
     ### COMBOLEARNERS TRAINED AGAINST RANDOMBOT ###     # TODO - haven't run 3 & 4 yet (looping)
     ###############################################
 
     # Bot 01
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), RandomBot(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), RandomBot(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), GreedyBot(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), BigMoney(), 100)
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), chapelComboBot, 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), RandomBot(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), RandomBot(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), GreedyBot(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), BigMoney(), 100)
+     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 02
     # QDecreaseEpsilon(RandomBot())
