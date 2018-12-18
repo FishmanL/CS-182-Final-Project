@@ -10,6 +10,7 @@ import derivbot
 import csv
 from operator import itemgetter
 import random
+import time
 
 # each index corresponds to the amount of one specific card
 canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copper, game.silver, game.gold,
