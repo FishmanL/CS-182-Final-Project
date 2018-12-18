@@ -213,7 +213,7 @@ if __name__ == '__main__':
     #  testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 02
-    # QDecreaseEpsilon(RandomBot())
+    QDecreaseEpsilon(RandomBot())
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), RandomBot(), 100)
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), GreedyBot(), 100)
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), BigMoney(), 100)
