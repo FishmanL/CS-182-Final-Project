@@ -124,7 +124,7 @@ def QDecreaseEpsilon(player2=GreedyBot(), iterations=100, reward_fun='proportion
 
 # train on three AIs iteratively
 def iterativeTraining(opponent1=GreedyBot(), opponent2=BigMoney(), opponent3=chapelComboBot, iterations=100, reward='proportional'):
-	p1 = ComboLearner(reward_fun=reward)
+    p1 = ComboLearner(reward_fun=reward)
     wins, ties = testQAgents(p1, GreedyBot(), 1)
     for i in range(int((iterations-1) / 3)):
         win1, tie1 = testQAgents(p1, opponent1, 1)
@@ -214,14 +214,14 @@ if __name__ == '__main__':
     #  testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot01.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 02
-    QDecreaseEpsilon(RandomBot())
+    # QDecreaseEpsilon(RandomBot())
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), RandomBot(), 100)
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), GreedyBot(), 100)
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), BigMoney(), 100)
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot02.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 03
-    # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0.25), RandomBot(), 100)
+    testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0.25), RandomBot(), 100)
     # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0, loadfile='weightsBot03.csv', learning_mode=False), RandomBot(), 100)
     # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0, loadfile='weightsBot03.csv', learning_mode=False), GreedyBot(), 100)
     # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0, loadfile='weightsBot03.csv', learning_mode=False), BigMoney(), 100)
