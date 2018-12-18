@@ -154,35 +154,6 @@ class ComboLearner(players.AIPlayer):
         cur_weights = [i/s for i in cur_weights]
         return cur_weights
 
-    # I made this into the general function above bc we kept reusing it,
-    # but if it needs to be independent I saved the original code, so just lmk
-    # if the general thing doesn't work and I can fix it as needed
-
-    # def update_q_values(self, reward):
-    #     cur_weights = self.buy_weights
-    #     new_weights_list = list()
-
-    #     for key in self.buy_dict:
-    #         features = list(key[0])
-    #         action = key[1]
-    #         cur_q_value = key[2]
-    #         count = self.buy_dict[key][0]
-    #         max_q = self.buy_dict[key][1]
-
-    #         difference = reward - cur_q_value
-    #         new_weights = [cur_weights[i] + 0.5*difference*features[i] for i in range(len(cur_weights))]
-    #         new_weights_list.append(new_weights)
-
-    #     for idx in range(len(self.buy_weights)):
-    #         self.buy_weights[idx] = 0
-    #         for l in new_weights_list:
-    #             self.buy_weights[idx] += l[idx]
-    #         self.buy_weights[idx] /= len(new_weights_list)
-
-    #     # normalize the weights from 0 to 1
-    #     s = sum(self.buy_weights)
-    #     self.buy_weights = [i/s for i in self.buy_weights]
-
     # update the q-vals for all four decision points
     def update_q_values(self, reward):
         self.buy_weights = self.update_one_qval(reward, self.buy_weights, self.buy_dict)
@@ -225,7 +196,6 @@ class ComboLearner(players.AIPlayer):
 
     # return the best card and its corresponding q-value
     def best_choice(self, game, decision, cur_q_value, actions, features, weights):
-
         best_q_value = cur_q_value
         best_card = None
         for card in actions: # Already processed None
@@ -268,7 +238,6 @@ class ComboLearner(players.AIPlayer):
             ngame = game.simulated_copy()
             if decision is TrashDecision:
                 state = ngame.state()
-
                 state = state.trash_card(card)
                 newgame = ngame.replace_current_state(state)
                 features = self.from_state_features_trash(TrashDecision(newgame))
@@ -313,7 +282,6 @@ class ComboLearner(players.AIPlayer):
             self.buy_dict[(tuple(features), best_card, cur_q_value)] = [1, best_q_value]
         return best_card
 
-    
     def make_act_decision(self, decision):
         """
         Choose an Action to play.
@@ -371,8 +339,8 @@ class ComboLearner(players.AIPlayer):
         cur_q_value = sum([features[i]*weights[i] for i in range(len(features))])
 
         best_options = self.best_choices_ordered(game, decision, actions, features, weights)
+        
         # select best card options
-
         if random_selection:
             selections = best_options
         else:
