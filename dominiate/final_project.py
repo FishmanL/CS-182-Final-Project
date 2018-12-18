@@ -10,6 +10,7 @@ import derivbot
 import csv
 from operator import itemgetter
 import random
+import time
 
 # each index corresponds to the amount of one specific card
 canonical_order = [game.curse, game.estate, game.duchy, game.province, game.copper, game.silver, game.gold,
@@ -43,6 +44,7 @@ class ComboLearner(players.AIPlayer):
         else:
             self.loadweights(filename=loadfile)
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
+            print self.weights
 
         self.buy_dict = dict()
         self.play_dict = dict()
@@ -60,7 +62,7 @@ class ComboLearner(players.AIPlayer):
     """
     # gets four sets of weights from a csv file, if it exists
     def loadweights(self, filename = "weights.csv"):
-        with open(filename, "r") as file:
+        with open(filename, "r+") as file:
             reader = csv.reader(file)
             introws = [[float(r) for r in row] for row in reader]
             self.buy_weights = introws[0]
@@ -82,6 +84,7 @@ class ComboLearner(players.AIPlayer):
             self.weights = [self.buy_weights, self.trash_weights, self.discard_weights, self.play_weights]
             for weight in self.weights:
                 writer.writerow(weight)
+        print self.weights
     
     # features for buying decisions, when you add a card from game to discard pile
     def from_state_features_buy (self, decision, game = None, state = None):
@@ -195,11 +198,12 @@ class ComboLearner(players.AIPlayer):
         pass
 
     # return the best card and its corresponding q-value
-    def best_choice(self, game, decision, cur_q_value, actions, features, weights):
+    def best_choice(self, g, decision, cur_q_value, actions, features, weights):
         best_q_value = cur_q_value
         best_card = None
         for card in actions: # Already processed None
-            ngame = game.simulated_copy()
+            ngame = g.simulated_copy()
+            newgame = ngame
             if decision is ActDecision:
                 state = ngame.state()
                 if card is None:
@@ -224,7 +228,11 @@ class ComboLearner(players.AIPlayer):
                 features = self.from_state_features_buy(BuyDecision(newgame))
                 weights = self.buy_weights
 
-            new_q_value = sum([features[i]*weights[i] for i in range(len(features))])
+
+            if game.Game.over(newgame):
+                new_q_value = self.terminal_val(newgame)
+            else:
+                new_q_value = sum([features[i]*weights[i] for i in range(len(features))])
             if new_q_value >= best_q_value:
                 best_q_value = new_q_value
                 best_card = card
