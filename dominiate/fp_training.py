@@ -103,7 +103,7 @@ def testQAgents(player1, player2, iterations):
     # print(wins)
     return win_rate, tie_rate
 
-# track win/tie rates
+# determine improvement in performance over training; track win/tie rates
 def testQtrackWins(trainer, player2, reward):
 
     wins_overall = []
@@ -112,7 +112,7 @@ def testQtrackWins(trainer, player2, reward):
     w, t = testQAgents(ComboLearner(reward_fun=reward, epsilon=0.25), trainer, 1)
 
     # play specified number of games, tracking wins
-    for rnd in range(50):
+    for rnd in range(20):
         game_results = []
         wins = []
 
@@ -198,64 +198,6 @@ def iterativeTraining(opponent1=GreedyBot(), opponent2=BigMoney(), opponent3=cha
     print("TIE RATE: " + str(tie_rate))
     print("LOSE RATE: " + str(1.0-tie_rate-win_rate))
 
-# determine improvement in performance with training
-def testQtrackWins(player2):
-
-    wins_overall = []
-    ties_overall = []
-
-    w, t = testQAgents(ComboLearner(reward_fun='proportional', epsilon=0.25), GreedyBot(), 1)
-
-    # play specified number of games, tracking wins
-    for rnd in range(100):
-        game_results = []
-        wins = []
-
-        # define player
-        player1 = ComboLearner(reward_fun='proportional', epsilon=0, loadfile='test_player1.csv', learning_mode=False)
-
-        # run 100 test games
-        for i in range(100):
-            game = Game.setup([player1, player2], variable_cards)
-
-            final_game, results = game.run()
-            game_results.append(results)
-            if isinstance(player1, ComboLearner):
-                player1.terminal_val(final_game)
-            if isinstance(player2, ComboLearner):
-                player2.terminal_val(final_game)
-
-            if results[0][0].name == player1.name:
-                score1 = results[0][1]
-                score2 = results[1][1]
-            else:
-                score1 = results[1][1]
-                score2 = results[0][1]
-
-            # 1 if player 1 wins, 0 if loss, None if tie
-            if score1 > score2:
-                wins.append(1.0)
-            elif score2 > score1:
-                wins.append(0.0)
-            else:
-                wins.append(None)
-
-        # get winning percentage for this round
-        wins_no_ties = filter(lambda x: x is not None, wins)
-        win_rate = float(sum(wins_no_ties)) / len(wins)
-        tie_rate = float(100 - len(wins_no_ties)) / len(wins)
-
-        wins_overall.append(win_rate)
-        ties_overall.append(tie_rate)
-
-        # train one more iteration
-        player1.throwaway  = win_rate # ensure compiler doesn't vectorize improperly
-        testQAgents(player1, GreedyBot(), 1)
-
-    print(wins_overall)
-    print(ties_overall)
-
-    return wins_overall, ties_overall
 
 if __name__ == '__main__':
     # test bots against each other as baseline
@@ -423,4 +365,7 @@ if __name__ == '__main__':
     # testing bot07
     # testQtrackWins(GreedyBot(), RandomBot(), 'zero sum')
     # testQtrackWins(GreedyBot(), GreedyBot(), 'zero sum')
+
+    # testing 
+    # testQtrackWins(BigMoney(), GreedyBot(), 'proportional')
 
