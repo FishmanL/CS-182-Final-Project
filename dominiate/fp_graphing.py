@@ -150,7 +150,6 @@ def graphTestOutcomes(bot, winRates, tieRates, lossRates):
 # code for graphTestOutcomes modified from:
 # https://python-graph-gallery.com/13-percent-stacked-barplot/
 
-# TODO - potential other graphs like scatterplot by opponent not training
 
 if __name__ == '__main__':
 
