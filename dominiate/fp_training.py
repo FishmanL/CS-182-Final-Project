@@ -83,7 +83,7 @@ def testQAgents(player1, player2, iterations):
             score1 = results[1][1]
             score2 = results[0][1]
 
-        # 1 if player 1 wins, 0 otherwise
+        # 1 if player 1 wins, 0 if loss, None if tie
         if score1 > score2:
             wins.append(1.0)
         elif score2 > score1:
@@ -102,6 +102,64 @@ def testQAgents(player1, player2, iterations):
     print("LOSE RATE: " + str(1.0-tie_rate-win_rate))
     print(wins)
     return win_rate, tie_rate
+
+# track win/tie rates
+def testQtrackWins(trainer, player2, reward):
+
+    wins_overall = []
+    ties_overall = []
+
+    w, t = testQAgents(ComboLearner(reward_fun=reward, epsilon=0.25), trainer, 1)
+
+    # play specified number of games, tracking wins
+    for rnd in range(50):
+        game_results = []
+        wins = []
+
+        # define player
+        player1 = ComboLearner(reward_fun=reward, epsilon=0, loadfile='test_player1.csv', learning_mode=False)
+
+        # run 100 test games
+        for i in range(100):
+            game = Game.setup([player1, player2], variable_cards)
+
+            final_game, results = game.run()
+            game_results.append(results)
+            if isinstance(player1, ComboLearner):
+                player1.terminal_val(final_game)
+            if isinstance(player2, ComboLearner):
+                player2.terminal_val(final_game)
+
+            if results[0][0].name == player1.name:
+                score1 = results[0][1]
+                score2 = results[1][1]
+            else:
+                score1 = results[1][1]
+                score2 = results[0][1]
+
+            # 1 if player 1 wins, 0 if loss, None if tie
+            if score1 > score2:
+                wins.append(1.0)
+            elif score2 > score1:
+                wins.append(0.0)
+            else:
+                wins.append(None)
+
+        # get winning percentage for this round
+        wins_no_ties = filter(lambda x: x is not None, wins)
+        win_rate = float(sum(wins_no_ties)) / len(wins)
+        tie_rate = float(100 - len(wins_no_ties)) / len(wins)
+
+        wins_overall.append(win_rate)
+        ties_overall.append(tie_rate)
+
+        # train one more iteration
+        testQAgents(ComboLearner(reward_fun=reward, epsilon=0.25, loadfile='test_player1.csv'), trainer, 1)
+
+    print(wins_overall)
+    print(ties_overall)
+
+    return wins_overall, ties_overall
 
 # training loop for decreasing epsilon
 def QDecreaseEpsilon(player2=GreedyBot(), iterations=100, reward_fun='proportional',iEpsilon=1.0):
@@ -248,6 +306,7 @@ if __name__ == '__main__':
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot05.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 06
+
     # QDecreaseEpsilon()
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot06.csv', learning_mode=False), RandomBot(), 100)
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot06.csv', learning_mode=False), GreedyBot(), 100)
@@ -255,7 +314,7 @@ if __name__ == '__main__':
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot06.csv', learning_mode=False), chapelComboBot, 100)
 
     # Bot 07
-    # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0.25), GreedyBot(), 100)
+    # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0.25), GreedyBot(), 500)
     # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0, loadfile='weightsBot07.csv', learning_mode=False), RandomBot(), 100)
     # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0, loadfile='weightsBot07.csv', learning_mode=False), GreedyBot(), 100)
     # testQAgents(ComboLearner(reward_fun='zero sum', epsilon=0, loadfile='weightsBot07.csv', learning_mode=False), BigMoney(), 100)
@@ -373,4 +432,18 @@ if __name__ == '__main__':
     # print("BOT18LOOK2")
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot18.csv', learning_mode=False), BigMoney(), 100)
     # print("BOT18LOOK3")
-    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot18.csv', learning_mode=False), chapelComboBot, 100)
+    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weightsBot18.csv', learning_mode=False), chapelComboBot, 100)
+
+
+    #############################################  
+    ### TRACK WIN RATE CHANGES OF SELECT BOTS ###
+    #############################################
+
+    # testing bot05
+    # testQtrackWins(GreedyBot(), RandomBot(), 'proportional')
+    # testQtrackWins(GreedyBot(), GreedyBot(), 'proportional')
+
+    # testing bot07
+    # testQtrackWins(GreedyBot(), RandomBot(), 'zero sum')
+    # testQtrackWins(GreedyBot(), GreedyBot(), 'zero sum')
+

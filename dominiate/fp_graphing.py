@@ -3,13 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#####################################################
-### GRAPHS 1: CUMULATIVE WIN RATE DURING TRAINING ###
-#####################################################
+###############################################
+### GRAPHS 1: WIN/TIE RATES DURING TRAINING ###
+###############################################
 
 
 # get a list of the cumulative win rate during training
-def getTrainingWins(index, winList):
+def getTrainingWins(winList):
 	games = len(winList)
 	cumulative = []
 	for i in range(games):
@@ -18,25 +18,46 @@ def getTrainingWins(index, winList):
 		cur_sum = sum(winList[:i+1])
 		cumulative.append(cur_sum / (i+1))
 	print(cumulative)
-	return index, cumulative
+	return cumulative
 
-# graph the win rate for the four variations of each bot(s) we trained against
-def graphTrainingWins(trainedAgainst, botA, listA, botB, listB, botC, listC, botD, listD):
+
+# graph the win rate during training for 5 bots
+def graphTrainingWins(listA, listB, listC, listD, listE):
 	# verify list lengths are correct and graphable
-	if not len(listA) == len(listB) == len(listC)== len(listD):
+	if not len(listA) == len(listB) == len(listC) == len(listD) == len(listE):
 		raise ValueError('Lists must have the same length')
 	if len(listA) <= 1:
 		raise ValueError("Not enough data to graph - need more iterations")
 
 	# graph a line for each variation of the trained bot
-	plt.plot(listA, 'k-', label=botA)
-	plt.plot(listB, 'r-', label=botB)
-	plt.plot(listC, 'g-', label=botC)
-	plt.plot(listD, 'c-', label=botD)
+	plt.plot(listA, 'k-', label='Bot01 (Random, Proportional)', alpha=0.7)
+	plt.plot(listB, 'r-', label='Bot05 (Greedy, Proportional)', alpha=0.7)
+	plt.plot(listC, 'g-', label='Bot07 (Greedy, Zero Sum)', alpha=0.7)
+	plt.plot(listD, 'c-', label='Bot09 (BigMoney, Proportional)', alpha=0.7)
+	plt.plot(listE, 'm--', label='Bot11 (BigMoney, Zero Sum', alpha=0.7)
 	plt.legend()
 	plt.xlabel("Iterations")
 	plt.ylabel("Win Proportions")
-	plt.title(trainedAgainst + ": Cumulative Win Rate During Training")
+	plt.title("Cumulative Win Rate During Training (100 iterations)")
+	plt.show()
+
+
+# graph the win rate for 100 rounds of 100 iterations each
+def graphTrainingWTLoop(Awins, Aties, Bwins, Bties, Cwins, Cties, Dwins, Dties):
+
+	# graph a line for each variation of the trained bot
+	plt.plot(Awins, 'r-', label='Bot05 vs Random, Win Rate')
+	plt.plot(Aties, 'r--', label='Bot05 vs Random, Tie Rate')
+	plt.plot(Bwins, 'g-', label='Bot05 vs Greedy, Win Rate')
+	plt.plot(Bties, 'g--', label='Bot05 vs Greedy, Tie Rate')
+	plt.plot(Cwins, 'c-', label='Bot07 vs Random, Win Rate')
+	plt.plot(Cties, 'c--', label='Bot07 vs Random, Tie Rate')
+	plt.plot(Dwins, 'm-', label='Bot07 vs Greedy, Win Rate')
+	plt.plot(Dties, 'm--', label='Bot07 vs Greedy, Tie Rate')
+
+	plt.legend(ncol=2, loc="center", bbox_to_anchor=(0.7,0.6), fontsize='x-small')
+	plt.xlabel("Rounds")
+	plt.title("Win and Tie Rates During Training")
 	plt.show()
 
 
@@ -110,7 +131,7 @@ def graphQValues(bot, csv_name):
 
 def graphTestOutcomes(bot, winRates, tieRates, lossRates):
 	r = [0, 1, 2, 3]	# win, tie, loss
-	barWidth = 0.85
+	barWidth = 0.2
 	names = ('RandomBot','GreedyBot','BigMoney','ChapelBot')
 	
 	# create bars for wins
@@ -132,13 +153,18 @@ def graphTestOutcomes(bot, winRates, tieRates, lossRates):
 # TODO - potential other graphs like scatterplot by opponent not training
 
 if __name__ == '__main__':
-	# bot01, list01 = getTrainingWins('bot01', [None, None, None, None, None, None, None, None, None])
-	# bot02, list02 = getTrainingWins('bot02', [0.0, None, 1.0, 0.0, 0.0, 1.0, 0.0, None, 1.0])
-	# bot03, list03 = getTrainingWins('bot03', [1.0, 1.0, 1.0, None, 0.0, 1.0, 1.0, None, 1.0])
-	# bot04, list04 = getTrainingWins('bot04', [None, None, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0])
-	# graphTrainingWins('RandomBot', bot01, list01, bot02, list02, bot03, list03, bot04, list04)
 
-	# graphQValues('bot01', 'graphtest.csv')
+	# win rates during training for select bots + opponents
+	bot05vRandomW = [0.78, 0.78, 0.79, 0.77, 0.79, 0.78, 0.82, 0.79, 0.75, 0.79, 0.72, 0.77, 0.86, 0.79, 0.84, 0.82, 0.8, 0.81, 0.76, 0.8, 0.83, 0.81, 0.75, 0.77, 0.75, 0.68, 0.72, 0.75, 0.71, 0.73, 0.76, 0.79, 0.78, 0.84, 0.7, 0.84, 0.77, 0.82, 0.81, 0.81, 0.87, 0.81, 0.77, 0.83, 0.85, 0.87, 0.74, 0.74, 0.76, 0.74, 0.86, 0.75, 0.86, 0.81, 0.79, 0.81, 0.77, 0.78, 0.76, 0.77, 0.77, 0.8, 0.7, 0.79, 0.83, 0.81, 0.84, 0.79, 0.75, 0.76, 0.79, 0.77, 0.86, 0.8, 0.87, 0.83, 0.83, 0.77, 0.84, 0.86, 0.79, 0.8, 0.85, 0.75, 0.81, 0.82, 0.75, 0.75, 0.78, 0.72, 0.75, 0.78, 0.79, 0.78, 0.82, 0.83, 0.84, 0.86, 0.74, 0.78]
+	bot05vGreedyW = [0.2, 0.26, 0.26, 0.31, 0.4, 0.26, 0.28, 0.35, 0.27, 0.28, 0.32, 0.3, 0.26, 0.26, 0.26, 0.29, 0.28, 0.27, 0.28, 0.22, 0.24, 0.23, 0.25, 0.28, 0.25, 0.29, 0.22, 0.27, 0.28, 0.32, 0.24, 0.26, 0.25, 0.27, 0.27, 0.32, 0.27, 0.28, 0.23, 0.29, 0.27, 0.21, 0.25, 0.25, 0.28, 0.3, 0.22, 0.26, 0.2, 0.3]
+	bot07vRandomW = [0.73, 0.75, 0.84, 0.79, 0.76, 0.83, 0.81, 0.79, 0.84, 0.78, 0.83, 0.78, 0.83, 0.82, 0.79, 0.81, 0.88, 0.83, 0.77, 0.77, 0.75, 0.76, 0.77, 0.78, 0.82, 0.8, 0.79, 0.8, 0.8, 0.77, 0.8, 0.8, 0.76, 0.84, 0.72, 0.77, 0.87, 0.73, 0.79, 0.84, 0.81, 0.78, 0.77, 0.85, 0.84, 0.85, 0.84, 0.86, 0.79, 0.85]
+	bot07vGreedyW = [0.27, 0.19, 0.21, 0.31, 0.39, 0.26, 0.28, 0.3, 0.31, 0.24, 0.29, 0.28, 0.29, 0.31, 0.27, 0.27, 0.26, 0.25, 0.3, 0.3, 0.29, 0.32, 0.34, 0.32, 0.34, 0.21, 0.3, 0.32, 0.29, 0.21, 0.24, 0.28, 0.27, 0.3, 0.33, 0.24, 0.2, 0.17, 0.27, 0.39, 0.26, 0.26, 0.27, 0.3, 0.31, 0.29, 0.27, 0.21, 0.28, 0.26]
 
-	# graphTestOutcomes('TestBot', [0.5, 0.1, 0.0, 0.9], [0.2, 0.6, 0.5, 0.05], [0.3, 0.3, 0.5, 0.05])
+	# tie rates during training for select bots + opponents
+	bot05vRandomT = [0.03, 0.05, 0.04, 0.07, 0.03, 0.03, 0.03, 0.05, 0.04, 0.03, 0.08, 0.08, 0.02, 0.07, 0.06, 0.03, 0.03, 0.07, 0.07, 0.07, 0.02, 0.06, 0.08, 0.03, 0.03, 0.09, 0.14, 0.05, 0.06, 0.04, 0.09, 0.06, 0.1, 0.05, 0.04, 0.04, 0.04, 0.08, 0.04, 0.05, 0.03, 0.05, 0.07, 0.04, 0.0, 0.02, 0.07, 0.05, 0.07, 0.09, 0.02, 0.06, 0.03, 0.02, 0.06, 0.05, 0.07, 0.02, 0.09, 0.05, 0.04, 0.09, 0.06, 0.04, 0.04, 0.04, 0.04, 0.07, 0.05, 0.02, 0.04, 0.11, 0.05, 0.04, 0.03, 0.05, 0.03, 0.06, 0.03, 0.03, 0.04, 0.04, 0.02, 0.06, 0.03, 0.02, 0.07, 0.06, 0.04, 0.06, 0.04, 0.03, 0.06, 0.04, 0.03, 0.06, 0.03, 0.06, 0.07, 0.09]
+	bot05vGreedyT = [0.3, 0.23, 0.23, 0.25, 0.21, 0.3, 0.19, 0.14, 0.27, 0.2, 0.22, 0.25, 0.2, 0.22, 0.2, 0.23, 0.2, 0.21, 0.22, 0.31, 0.24, 0.24, 0.21, 0.22, 0.22, 0.19, 0.28, 0.25, 0.33, 0.22, 0.31, 0.27, 0.23, 0.19, 0.27, 0.26, 0.27, 0.3, 0.27, 0.24, 0.19, 0.24, 0.27, 0.19, 0.27, 0.25, 0.25, 0.23, 0.31, 0.19]
+	bot07vRandomT = [0.05, 0.06, 0.03, 0.03, 0.02, 0.04, 0.04, 0.05, 0.04, 0.01, 0.02, 0.07, 0.01, 0.04, 0.04, 0.01, 0.01, 0.06, 0.08, 0.05, 0.06, 0.06, 0.07, 0.04, 0.04, 0.07, 0.07, 0.05, 0.06, 0.03, 0.07, 0.04, 0.06, 0.03, 0.06, 0.04, 0.05, 0.04, 0.01, 0.02, 0.01, 0.01, 0.07, 0.02, 0.03, 0.03, 0.05, 0.02, 0.08, 0.04]
+	bot07vGreedyT = [0.27, 0.31, 0.24, 0.31, 0.3, 0.29, 0.2, 0.17, 0.19, 0.3, 0.29, 0.21, 0.23, 0.24, 0.29, 0.15, 0.25, 0.3, 0.29, 0.23, 0.23, 0.22, 0.18, 0.33, 0.18, 0.2, 0.25, 0.2, 0.22, 0.24, 0.29, 0.26, 0.28, 0.26, 0.19, 0.25, 0.26, 0.31, 0.27, 0.2, 0.23, 0.22, 0.28, 0.27, 0.2, 0.2, 0.28, 0.27, 0.33, 0.27]
+
+	graphTrainingWTLoop(bot05vRandomW[:50], bot05vRandomT[:50], bot05vGreedyW, bot05vGreedyT, bot07vRandomW, bot07vRandomT, bot07vGreedyW, bot07vGreedyT)
 
