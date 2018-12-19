@@ -204,7 +204,7 @@ if __name__ == '__main__':
     # testNotQAgents(GreedyBot(), BigMoney(), 100)
 
     ###############################################
-    ### COMBOLEARNERS TRAINED AGAINST RANDOMBOT ###     # TODO - haven't run 3 & 4 yet (looping)
+    ### COMBOLEARNERS TRAINED AGAINST RANDOMBOT ###
     ###############################################
 
     # Bot 01
@@ -303,7 +303,7 @@ if __name__ == '__main__':
 
 
     ####################################################
-    ### COMBOLEARNERS TRAINED AGAINST CHAPELCOMBOBOT ###    # TODO - haven't run yet - tie issue?
+    ### COMBOLEARNERS TRAINED AGAINST CHAPELCOMBOBOT ###
     ####################################################
 
     # Bot 13
@@ -351,7 +351,7 @@ if __name__ == '__main__':
     # print("BOT16LOOK4")
 
     #########################################  
-    ### COMBOLEARNERS TRAINED ITERATIVELY ###       # TODO - have to do 18 (looping)
+    ### COMBOLEARNERS TRAINED ITERATIVELY ###
     #########################################
 
     # Bot 17
@@ -373,4 +373,4 @@ if __name__ == '__main__':
     # print("BOT18LOOK2")
     # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot18.csv', learning_mode=False), BigMoney(), 100)
     # print("BOT18LOOK3")
-     testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot18.csv', learning_mode=False), chapelComboBot, 100)
+    # testQAgents(ComboLearner(reward_fun='proportional', epsilon=0, loadfile='weights/weightsBot18.csv', learning_mode=False), chapelComboBot, 100)
